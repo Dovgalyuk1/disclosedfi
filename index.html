@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DISCLOSED — coins whose stock rewards copy a real filing</title>
+<meta name="description" content="DISCLOSED launches coins on Robinhood Chain whose stock rewards are bound to a public filing — a fund's 13F, an insider's Form 4, a lawmaker's disclosure. Fees buy exactly what the filing says.">
+<meta property="og:title" content="DISCLOSED — nobody picks the basket, the filings do">
+<meta property="og:description" content="Bind a coin's stock rewards to a real, public portfolio. Fees buy what the filing says and rebalance when the next one lands.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1eee4; --bg2:#e9e4d6; --panel:#fbf9f3; --panel2:#f4f0e5;
+  --ink:#15171b; --mute:#5a5d64; --dim:#8a8c91;
+  --line:rgba(21,23,27,.13); --line2:rgba(21,23,27,.22); --line3:rgba(21,23,27,.36);
+  --ok:#1d7146; --put:#b03621; --bad:#b03621; --gold:#9a7218; --hl:#f2d75e;
+  --acc:#b03621; --ink-blue:#1d3c6e;
+  --serif:'Instrument Serif',Georgia,serif;
+  --sans:'Inter Tight',system-ui,-apple-system,Segoe UI,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select{cursor:auto}
+h1,h2,h3,h4{font-weight:400;line-height:1.05}
+b,strong{font-weight:600}
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+.mono{font-family:var(--mono)}
+.serif{font-family:var(--serif)}
+em{font-family:var(--serif);font-style:italic}
+
+/* paper background: ruled lines + stamp watermark */
+.paper{position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+   repeating-linear-gradient(to bottom,rgba(21,23,27,.033) 0 1px,transparent 1px 34px),
+   radial-gradient(120% 80% at 80% 0%,rgba(176,54,33,.05),transparent 60%),
+   radial-gradient(90% 70% at 0% 100%,rgba(29,60,110,.05),transparent 60%);}
+.grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.055'/%3E%3C/svg%3E")}
+
+/* header */
+header{position:sticky;top:0;z-index:100;background:rgba(241,238,228,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.hd{display:flex;align-items:center;gap:16px;height:62px}
+.logo{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:14px;letter-spacing:.14em;font-weight:500;text-transform:uppercase}
+.logo .mk{width:28px;height:28px;flex:none}
+nav{display:flex;gap:2px;margin-left:14px}
+nav a{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--mute);padding:6px 9px;border-radius:6px;text-transform:uppercase}
+nav a:hover{color:var(--ink);background:var(--panel2)}
+nav a i{color:var(--dim);font-style:normal;margin-right:5px}
+.hd .sp{margin-left:auto}
+.hd-w{flex:none}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line2);background:var(--panel);border-radius:8px;padding:10px 16px;font-size:14.5px;font-weight:500;transition:.14s;white-space:nowrap}
+.btn:hover{border-color:var(--line3);transform:translateY(-1px)}
+.btn.acc{background:var(--acc);border-color:var(--acc);color:#fdf6f2;box-shadow:0 2px 0 0 #7d2517}
+.btn.acc:hover{background:#c23d27}
+.btn.ghost{background:transparent}
+.btn.sm{padding:7px 11px;font-size:13px;border-radius:7px}
+.btn.lg{padding:13px 22px;font-size:15.5px}
+.btn[disabled]{opacity:.5;cursor:not-allowed;transform:none}
+.btn.bad{border-color:var(--put);color:var(--put)}
+.wdot{width:7px;height:7px;border-radius:50%;background:var(--ok);display:inline-block}
+.wdot.bad{background:var(--put)}
+.net{display:inline-flex;align-items:center;gap:7px}
+.addr{font-family:var(--mono);font-size:13px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--mute);border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:4px 8px;text-transform:uppercase}
+.chip b{color:var(--ink);font-weight:500;text-transform:none}
+.snd{width:34px;height:34px;border:1px solid var(--line2);border-radius:7px;display:grid;place-items:center;color:var(--mute);flex:none}
+.snd:hover{color:var(--ink);border-color:var(--line3)}
+.snd.off{color:var(--dim);opacity:.7}
+
+/* tape */
+.tape{border-bottom:1px solid var(--line);background:var(--panel2);overflow:hidden;height:30px;display:flex;align-items:center}
+.tape ul{display:flex;gap:34px;white-space:nowrap;animation:roll 58s linear infinite;font-family:var(--mono);font-size:11px;color:var(--mute);letter-spacing:.04em;padding-left:34px}
+.tape li{list-style:none}
+.tape b{color:var(--ink);font-weight:500}
+.tape i{color:var(--acc);font-style:normal}
+@keyframes roll{to{transform:translateX(-50%)}}
+
+/* sections */
+section{padding:74px 0;border-bottom:1px solid var(--line);position:relative}
+.eyebrow{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:16px}
+.eyebrow::before{content:'';width:26px;height:1px;background:var(--line3)}
+.eyebrow b{color:var(--acc);font-weight:500}
+h2{font-family:var(--serif);font-size:clamp(30px,4.4vw,50px);letter-spacing:-.01em}
+h2 em{color:var(--acc)}
+.lead{color:var(--mute);font-size:17px;max-width:62ch;margin-top:14px}
+.sec-h{margin-bottom:34px}
+
+/* hero */
+.hero{padding:52px 0 64px;border-bottom:1px solid var(--line)}
+.hero-g{display:grid;grid-template-columns:1.06fr .94fr;gap:44px;align-items:start}
+h1{font-family:var(--serif);font-size:clamp(40px,6.2vw,76px);letter-spacing:-.02em;padding-right:118px}
+h1 em{color:var(--acc)}
+.hero p.l{color:var(--mute);font-size:17.5px;margin-top:20px;max-width:56ch}
+.hero .cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.hero .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:18px}
+.hero .three{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:30px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.hero .three div{background:var(--panel);padding:14px 15px}
+.hero .three h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.hero .three p{font-size:13.5px;color:var(--mute);line-height:1.5}
+.hero .three b{color:var(--ink)}
+
+/* stamp */
+.stamp{position:absolute;right:-4px;top:-24px;width:126px;height:126px;cursor:pointer;z-index:3;transition:transform .12s}
+.stamp:hover{transform:rotate(-4deg) scale(1.03)}
+.stamp:active{transform:rotate(-7deg) scale(.94)}
+.stamp svg{width:100%;height:100%;filter:drop-shadow(0 1px 0 rgba(0,0,0,.06))}
+.stamp .hint{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--dim);white-space:nowrap;text-transform:uppercase}
+.mark{position:fixed;z-index:60;pointer-events:none;font-family:var(--mono);font-weight:500;letter-spacing:.14em;color:rgba(176,54,33,.62);border:2.5px solid rgba(176,54,33,.5);border-radius:5px;padding:5px 9px;font-size:13px;animation:pop .5s ease-out forwards}
+@keyframes pop{0%{transform:translate(-50%,-50%) scale(.5) rotate(var(--r));opacity:0}35%{transform:translate(-50%,-50%) scale(1.12) rotate(var(--r));opacity:1}100%{transform:translate(-50%,-50%) scale(1) rotate(var(--r));opacity:.92}}
+
+/* live filing panel */
+.panel{background:var(--panel);border:1px solid var(--line2);border-radius:12px;overflow:hidden;box-shadow:0 22px 50px -34px rgba(21,23,27,.5)}
+.panel-h{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line);background:var(--panel2)}
+.panel-h h3{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:500}
+.panel-h .sim{margin-left:auto;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;border:1px solid var(--line2);border-radius:4px;padding:3px 6px;color:var(--gold);text-transform:uppercase}
+.src{display:flex;align-items:center;gap:12px;padding:15px}
+.src .av{width:40px;height:40px;border-radius:8px;border:1px solid var(--line2);background:var(--bg2);display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:500;flex:none;color:var(--ink-blue)}
+.src b{display:block;font-size:15px;font-weight:600}
+.src span{font-family:var(--mono);font-size:11px;color:var(--mute)}
+.lagbar{padding:0 15px 14px}
+.lagbar .t{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.lagbar .tr{height:5px;border-radius:3px;background:var(--bg2);overflow:hidden;border:1px solid var(--line)}
+.lagbar .tr i{display:block;height:100%;background:linear-gradient(90deg,var(--ok),var(--gold));transition:width .5s}
+.rows{border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:54px 1fr 62px 58px;gap:8px;align-items:center;padding:8px 15px;border-bottom:1px solid var(--line);font-size:13px}
+.row:last-child{border-bottom:0}
+.row .tk{font-family:var(--mono);font-size:12px;font-weight:500}
+.row .bar{height:6px;border-radius:3px;background:var(--bg2);overflow:hidden;border:1px solid var(--line)}
+.row .bar i{display:block;height:100%;background:var(--ink-blue);transition:width .6s}
+.row .w{font-family:var(--mono);font-size:12px;text-align:right;color:var(--mute)}
+.row .d{font-family:var(--mono);font-size:11px;text-align:right}
+.row .d.up{color:var(--ok)} .row .d.dn{color:var(--put)} .row .d.fl{color:var(--dim)}
+.feed{border-top:1px solid var(--line);background:var(--panel2);padding:10px 15px 12px;height:158px;overflow:hidden}
+.feed h4{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+.ev{display:flex;gap:9px;align-items:baseline;font-size:12.5px;padding:3px 0;animation:slidein .35s}
+@keyframes slidein{from{opacity:0;transform:translateY(-5px)}}
+.ev .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;border:1px solid var(--line2);border-radius:4px;padding:1px 5px;flex:none;color:var(--mute);text-transform:uppercase}
+.ev .k.f{color:var(--ink-blue);border-color:rgba(29,60,110,.4);background:rgba(29,60,110,.07)}
+.ev .k.b{color:var(--ok);border-color:rgba(29,113,70,.4);background:rgba(29,113,70,.07)}
+.ev .k.s{color:var(--put);border-color:rgba(176,54,33,.4);background:rgba(176,54,33,.07)}
+.ev .k.c{color:var(--gold);border-color:rgba(154,114,24,.4);background:rgba(154,114,24,.08)}
+.ev span{color:var(--mute)}
+.ev b{font-weight:500}
+.ev .ts{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dim);flex:none}
+
+/* generic card grid */
+.cards{display:grid;gap:14px}
+.cards.c3{grid-template-columns:repeat(3,1fr)}
+.cards.c2{grid-template-columns:repeat(2,1fr)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:18px 19px}
+.card h3{font-size:17px;font-weight:600;font-family:var(--sans);margin-bottom:7px}
+.card p{font-size:14px;color:var(--mute);line-height:1.55}
+.card .n{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--acc);margin-bottom:10px;display:block}
+.card b{color:var(--ink)}
+
+/* copy desk */
+.desk{display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start}
+.box{background:var(--panel);border:1px solid var(--line2);border-radius:12px;overflow:hidden}
+.box-h{padding:11px 15px;border-bottom:1px solid var(--line);background:var(--panel2);font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);display:flex;align-items:center;gap:8px}
+.box-h .r{margin-left:auto;color:var(--dim);letter-spacing:.06em}
+.box-b{padding:15px}
+.srcs{display:grid;gap:7px;max-height:352px;overflow-y:auto;padding-right:3px}
+.srcopt{display:flex;gap:11px;align-items:center;width:100%;text-align:left;border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:9px 11px;transition:.12s}
+.srcopt:hover{border-color:var(--line3)}
+.srcopt.on{border-color:var(--acc);background:rgba(176,54,33,.06);box-shadow:inset 0 0 0 1px rgba(176,54,33,.25)}
+.srcopt .av{width:32px;height:32px;border-radius:7px;border:1px solid var(--line2);background:var(--bg2);display:grid;place-items:center;font-family:var(--mono);font-size:11.5px;font-weight:500;flex:none;color:var(--ink-blue)}
+.srcopt b{display:block;font-size:13.5px;font-weight:500;line-height:1.25}
+.srcopt span{font-family:var(--mono);font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em}
+.fld{margin-top:15px}
+.fld:first-child{margin-top:0}
+.fld > label{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+.fld > label b{font-family:var(--mono);color:var(--ink);font-weight:500;letter-spacing:0;text-transform:none;font-size:12.5px}
+.segs{display:flex;gap:5px;flex-wrap:wrap}
+.seg{border:1px solid var(--line2);background:var(--panel2);border-radius:7px;padding:6px 10px;font-size:12.5px;transition:.12s}
+.seg:hover{border-color:var(--line3)}
+.seg.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+input[type=range]{-webkit-appearance:none;width:100%;height:20px;background:none}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--line2)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--acc);border:2px solid var(--panel);box-shadow:0 0 0 1px var(--acc);margin-top:-6px}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--line2)}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;border:2px solid var(--panel);border-radius:50%;background:var(--acc)}
+.num{width:100%;border:1px solid var(--line2);background:var(--panel2);border-radius:7px;padding:8px 11px;font-family:var(--mono);font-size:13.5px}
+.num:focus{outline:none;border-color:var(--acc)}
+
+/* basket table */
+.bk{width:100%;border-collapse:collapse;font-size:13.5px}
+.bk th{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);text-align:right;padding:0 10px 8px;font-weight:500;border-bottom:1px solid var(--line)}
+.bk th:first-child,.bk td:first-child{text-align:left;padding-left:0}
+.bk th:last-child,.bk td:last-child{padding-right:0}
+.bk td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12.5px}
+.bk tr:last-child td{border-bottom:0}
+.bk td.n{font-family:var(--sans);font-size:13.5px;text-align:left}
+.bk td.n i{font-style:normal;color:var(--dim);font-family:var(--mono);font-size:11px;margin-left:7px}
+.bk .up{color:var(--ok)} .bk .dn{color:var(--put)} .bk .off{color:var(--dim)}
+.bk tr.dead td{color:var(--dim)}
+.tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line2);border-radius:4px;padding:1px 5px;color:var(--mute)}
+.tag.ok{color:var(--ok);border-color:rgba(29,113,70,.4)}
+.tag.no{color:var(--gold);border-color:rgba(154,114,24,.4)}
+
+/* metrics */
+.mets{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.mets > div{background:var(--panel2);padding:12px 14px}
+.mets h5{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:6px;font-weight:500}
+.mets b{font-family:var(--mono);font-size:19px;font-weight:500;display:block;line-height:1.1}
+.mets span{font-size:11.5px;color:var(--mute)}
+.plain{border-left:2px solid var(--acc);background:var(--panel2);padding:12px 15px;border-radius:0 8px 8px 0;font-size:14px;color:var(--mute);margin-top:14px}
+.plain b{color:var(--ink)}
+.note{font-family:var(--mono);font-size:11.5px;color:var(--mute);margin-top:9px;min-height:16px}
+.note b{color:var(--ink);font-weight:500}
+
+/* diff list */
+.diff{display:grid;gap:6px}
+.dl{display:grid;grid-template-columns:46px 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;background:var(--panel2);padding:8px 11px;font-size:13px}
+.dl .a{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;text-align:center;border-radius:4px;padding:2px 0}
+.dl .a.b{background:rgba(29,113,70,.12);color:var(--ok)}
+.dl .a.s{background:rgba(176,54,33,.12);color:var(--put)}
+.dl .a.n{background:rgba(29,60,110,.1);color:var(--ink-blue)}
+.dl b{font-family:var(--mono);font-size:12.5px;font-weight:500}
+.dl span{color:var(--mute);font-size:12.5px}
+.dl .v{font-family:var(--mono);font-size:12px;color:var(--mute)}
+
+/* redaction reveal */
+.redact{position:relative;display:inline-block;background:var(--ink);color:transparent;border-radius:3px;padding:0 4px;cursor:pointer;transition:.25s;user-select:none}
+.redact:hover,.redact.open{background:rgba(242,215,94,.45);color:var(--ink)}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.steps > div{background:var(--panel);padding:18px 17px}
+.steps .n{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--acc);display:block;margin-bottom:10px}
+.steps h4{font-size:16px;font-weight:600;font-family:var(--sans);margin-bottom:7px}
+.steps p{font-size:13.5px;color:var(--mute);line-height:1.5}
+.steps b{color:var(--ink)}
+
+/* tables */
+.tbl-w{border:1px solid var(--line2);border-radius:11px;overflow:hidden;background:var(--panel)}
+table.big{width:100%;border-collapse:collapse;font-size:13.5px}
+table.big th{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);text-align:right;padding:11px 12px;font-weight:500;background:var(--panel2);border-bottom:1px solid var(--line)}
+table.big th:first-child,table.big td:first-child{text-align:left}
+table.big td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12.5px}
+table.big tr:last-child td{border-bottom:0}
+table.big td.n{font-family:var(--sans);font-size:14px;text-align:left}
+table.big td.n small{display:block;font-family:var(--mono);font-size:10.5px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em}
+table.big tr.cl{cursor:pointer}
+table.big tr.cl:hover td{background:var(--panel2)}
+.scr{overflow-x:auto}
+
+/* rules */
+.rules{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.rule{display:flex;gap:13px;border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:14px 16px}
+.rule .id{font-family:var(--mono);font-size:11px;color:var(--acc);flex:none;padding-top:2px}
+.rule h4{font-size:14.5px;font-weight:600;font-family:var(--sans);margin-bottom:4px}
+.rule p{font-size:13px;color:var(--mute);line-height:1.5}
+
+/* lag sim */
+.sim-g{display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start}
+.bars{display:flex;gap:9px;height:210px;position:relative;margin-bottom:22px}
+.bars::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line3)}
+.bars > div{flex:1;position:relative}
+.bars .b{position:absolute;width:40%;border-radius:2px;transition:height .35s,top .35s,bottom .35s}
+.bars .b.src{left:6%;background:var(--ink-blue);opacity:.38}
+.bars .b.mir{left:52%;background:var(--acc)}
+.bars .lb{position:absolute;bottom:-19px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:9.5px;color:var(--dim)}
+.leg{display:flex;gap:16px;margin-top:12px;font-family:var(--mono);font-size:10.5px;color:var(--mute);letter-spacing:.06em;text-transform:uppercase}
+.leg i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:6px}
+
+/* token */
+.tok-g{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;align-items:start}
+.split{display:flex;height:34px;border-radius:8px;overflow:hidden;border:1px solid var(--line2)}
+.split div{display:grid;place-items:center;font-family:var(--mono);font-size:11.5px;color:#fdf6f2}
+.tok-bal{font-family:var(--mono);font-size:12.5px;color:var(--mute);border:1px dashed var(--line2);border-radius:8px;padding:10px 12px;margin-top:12px}
+.tok-bal b{color:var(--ink);font-weight:500}
+
+/* rollout */
+.roll{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.roll .card h3{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc)}
+.roll ul{margin-top:10px;display:grid;gap:7px}
+.roll li{list-style:none;font-size:13.5px;color:var(--mute);padding-left:16px;position:relative;line-height:1.5}
+.roll li::before{content:'';position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:2px;background:var(--line3)}
+.roll b{color:var(--ink)}
+
+/* final + footer */
+.final{padding:84px 0;text-align:center;border-bottom:1px solid var(--line)}
+.final h2{max-width:24ch;margin:0 auto}
+.final .cta{display:flex;gap:10px;justify-content:center;margin-top:26px;flex-wrap:wrap}
+footer{padding:34px 0 46px}
+.ft{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;font-size:13px;color:var(--dim)}
+.ft p{max-width:68ch;line-height:1.6}
+.ft .fl{display:flex;gap:18px;margin-left:auto}
+.ft a:hover{color:var(--ink)}
+
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);z-index:130;background:var(--ink);color:var(--bg);border-radius:9px;padding:11px 16px;font-size:13.5px;opacity:0;transition:.25s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+/* wallet modal */
+.ov{position:fixed;inset:0;z-index:110;background:rgba(21,23,27,.45);display:none;align-items:center;justify-content:center;padding:16px}
+.ov.show{display:flex;animation:fade .15s}
+@keyframes fade{from{opacity:0}}
+@keyframes rise{from{transform:translateY(8px);opacity:.6}}
+.modal{width:100%;max-width:430px;background:var(--panel);border:1px solid var(--line2);border-radius:16px;box-shadow:0 40px 90px -30px rgba(21,23,27,.45);overflow:hidden;animation:rise .2s;max-height:calc(100svh - 32px);display:flex;flex-direction:column}
+.modal-h{display:flex;align-items:center;gap:10px;padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+.modal-h h3{font-size:16px;font-weight:600}
+.modal-h .x{margin-left:auto;width:32px;height:32px;border-radius:8px;border:1px solid var(--line2);display:grid;place-items:center;color:var(--mute)}
+.modal-h .x:hover{border-color:var(--line3);color:var(--ink)}
+.modal-b{padding:16px 18px 18px;overflow-y:auto}
+.netcard{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg2);margin-bottom:14px}
+.netcard .ic{width:34px;height:34px;border-radius:9px;background:var(--panel2);border:1px solid var(--line2);display:grid;place-items:center;flex:none}
+.netcard b{display:block;font-size:14px;font-weight:600}
+.netcard span{font-family:var(--mono);font-size:11px;color:var(--mute)}
+.wlist{display:grid;gap:8px}
+.wopt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--panel2);padding:10px 12px;transition:border-color .12s,box-shadow .12s}
+.wopt:hover{border-color:var(--line3);box-shadow:0 0 0 3px rgba(176,54,33,.10)}
+.wopt img,.wopt .gic{width:30px;height:30px;border-radius:8px;flex:none;object-fit:contain}
+.wopt .gic{background:var(--line);display:grid;place-items:center}
+.wopt b{font-weight:500;font-size:14.5px}
+.wopt .badge{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:3px 7px;border-radius:5px;background:rgba(176,54,33,.09);color:var(--ok)}
+.wopt.busy .badge{background:rgba(154,114,24,.14);color:var(--gold)}
+.wopt .lg{width:30px;height:30px;border-radius:8px;flex:none;display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff}
+.wopt .chev{margin-left:auto;color:var(--dim);transition:transform .15s}
+.wopt.open .chev{transform:rotate(90deg)}
+.whelp{display:none;border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px;margin-top:-10px;padding:16px 13px 12px;background:var(--bg2);font-size:13px;color:var(--mute);line-height:1.55}
+.whelp.show{display:block}
+.whelp b{color:var(--ink);font-weight:600}
+.whelp ol{margin:6px 0 10px;padding-left:18px}
+.whelp .acts{display:flex;flex-wrap:wrap;gap:6px}
+.whelp code{font-family:var(--mono);font-size:11.5px;background:var(--panel2);border:1px solid var(--line2);border-radius:5px;padding:1px 5px;word-break:break-all;color:var(--ink)}
+.msec{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:16px 0 8px;display:flex;justify-content:space-between}
+.wc{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid rgba(29,60,110,.45);border-radius:12px;background:rgba(29,60,110,.07);padding:10px 12px}
+.wc:hover{box-shadow:0 0 0 3px rgba(29,60,110,.14)}
+.wc b{font-weight:500}
+.wc small{margin-left:auto;font-family:var(--mono);font-size:11px;color:#1d3c6e}
+.merr{margin-top:12px;font-size:13px;color:var(--put);display:none;background:rgba(176,54,33,.07);border:1px solid rgba(176,54,33,.32);border-radius:10px;padding:10px 12px}
+.merr.show{display:block}
+.mfoot{margin-top:14px;font-size:12px;color:var(--dim);line-height:1.5}
+.acct{display:grid;gap:10px}
+.acct .who{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg2)}
+.acct .who canvas{width:40px;height:40px;border-radius:10px;flex:none}
+.acct .who b{font-family:var(--mono);font-weight:500;font-size:14px;display:block}
+.acct .who span{font-size:12px;color:var(--mute)}
+.acct .who .cp{margin-left:auto}
+.kv{border:1px solid var(--line);border-radius:12px;background:var(--bg2)}
+.kv div{display:flex;justify-content:space-between;gap:10px;padding:9px 14px;font-size:13.5px;border-bottom:1px solid var(--line)}
+.kv div:last-child{border-bottom:0}
+.kv span{color:var(--mute)}
+.kv b{font-family:var(--mono);font-weight:500;text-align:right}
+.kv b.ok{color:var(--ok)} .kv b.bad{color:var(--put)}
+.acct .btns{display:flex;gap:8px}
+.acct .btns .btn{flex:1}
+.lastq{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg2);font-family:var(--mono);font-size:11.5px;color:var(--mute);line-height:1.6;word-break:break-all}
+.lastq h4{font-weight:500;font-size:10.5px;letter-spacing:.12em;color:var(--dim);margin-bottom:6px}
+.lastq b{color:var(--ink);font-weight:500}
+
+
+/* responsive */
+@media (min-width:1101px) and (max-height:760px){
+  .hero{padding:26px 0 34px}
+  h1{font-size:clamp(34px,4.4vw,52px)}
+  .hero p.l{font-size:16px;margin-top:14px}
+  .hero .cta{margin-top:18px}
+  .hero .three{margin-top:18px}
+  .feed{height:120px}
+}
+@media (max-width:1100px){
+  .hero-g,.desk,.sim-g,.tok-g{grid-template-columns:1fr}
+  .steps{grid-template-columns:repeat(2,1fr)}
+  .cards.c3,.roll{grid-template-columns:1fr 1fr}
+  nav{display:none}
+  .stamp{width:104px;height:104px;top:-8px}
+  h1{padding-right:96px}
+}
+@media (max-width:760px){
+  .wrap{padding:0 18px}
+  section{padding:54px 0}
+  .cards.c3,.cards.c2,.roll,.rules,.steps,.mets{grid-template-columns:1fr}
+  .mets > div{padding:11px 13px}
+  .hero{padding:34px 0 44px}
+  .hero .three{grid-template-columns:1fr}
+  .stamp{position:static;width:88px;height:auto;margin:0 0 14px}
+  .stamp svg{height:88px;display:block}
+  h1{padding-right:0}
+  .stamp .hint{position:static;transform:none;display:block;margin-top:2px}
+  .hd{gap:9px}
+  .hd .xl,.hd .buy{display:none}
+  .ft .fl{margin-left:0}
+}
+</style>
+</head>
+<body>
+<div class="paper"></div><div class="grain"></div>
+<header>
+  <div class="wrap hd">
+    <a class="logo" href="#top">
+      <svg class="mk" viewBox="0 0 32 32" fill="none">
+        <rect x="1" y="1" width="30" height="30" rx="7" fill="#15171b"/>
+        <path d="M9 8.5h9.5L23 13v10.5H9z" fill="none" stroke="#f1eee4" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M18 8.5V13h4.6" stroke="#f1eee4" stroke-width="1.6" stroke-linejoin="round"/>
+        <circle cx="16" cy="18" r="4.4" fill="none" stroke="#b03621" stroke-width="1.8"/>
+        <path d="M13.9 18.2l1.5 1.6 2.9-3.3" stroke="#b03621" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Disclosed
+    </a>
+    <nav>
+      <a href="#desk"><i>01</i>Copy desk</a>
+      <a href="#how"><i>02</i>How it works</a>
+      <a href="#sources"><i>03</i>Sources</a>
+      <a href="#lag"><i>04</i>The lag</a>
+      <a href="#mirrors"><i>05</i>Mirrors</a>
+      <a href="#token"><i>06</i>$DSCL</a>
+    </nav>
+    <span class="sp"></span>
+    <button class="snd" id="sndBtn" title="Sound" aria-label="Sound">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6H2v4h2l3.5 2.8V3.2z"/><path d="M10.4 5.8a3 3 0 010 4.4" class="sw"/><path d="M12.4 3.8a6 6 0 010 8.4" class="sw"/></svg>
+    </button>
+    <a class="btn sm ghost xl xLink" href="#" target="_blank" rel="noopener">X</a>
+    <button class="btn sm ghost buy" id="buyBtn">Buy $DSCL</button>
+    <button class="btn sm acc hd-w" id="wBtn"><span class="wl">Connect wallet</span></button>
+  </div>
+</header>
+
+<div class="tape"><ul id="tape"></ul></div>
+
+<div id="top"></div>
+<div class="hero">
+  <div class="wrap hero-g">
+    <div style="position:relative">
+      <div class="stamp" id="stamp" title="Stamp it">
+        <svg viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="#b03621" stroke-width="3.5" opacity=".75"/>
+          <circle cx="60" cy="60" r="44" fill="none" stroke="#b03621" stroke-width="1.4" opacity=".6"/>
+          <text x="60" y="55" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="17" letter-spacing="2.5" fill="#b03621" opacity=".85">FILED</text>
+          <text x="60" y="73" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" letter-spacing="1.6" fill="#b03621" opacity=".7">PUBLIC RECORD</text>
+          <path d="M22 84h76" stroke="#b03621" stroke-width="1.2" opacity=".5"/>
+        </svg>
+        <span class="hint">tap the stamp</span>
+      </div>
+      <h1>Nobody picks the basket.<br><em>The filings do.</em></h1>
+      <p class="l">DISCLOSED launches coins on Robinhood Chain whose stock rewards copy a real, public portfolio — a fund's 13F, an executive's Form 4 buys, a lawmaker's disclosure. Trading fees go to the coin's vault, the vault buys exactly what the filing says, and holders claim the stock tokens. When the next filing lands, the basket rebalances itself.</p>
+      <div class="cta">
+        <a class="btn acc lg" href="#desk" id="goDesk">Open the copy desk</a>
+        <button class="btn ghost lg" id="wBtn2">Connect wallet</button>
+      </div>
+      <div class="chips">
+        <span class="chip">CA <b id="caChip">posted at launch</b></span>
+        <span class="chip">chain <b>4663</b></span>
+        <span class="chip">rewards in <b>stock tokens</b></span>
+      </div>
+      <div class="three">
+        <div><h4>If you hold</h4><p>You claim the same stocks the filing holds, in the same weights, <b>pro rata to your bag</b>. No stock picking on your part, no fund minimum.</p></div>
+        <div><h4>If you launch</h4><p>You pick a <b>source, not a basket</b>. The mirror does the work forever, and you keep a cut of every fee it routes.</p></div>
+        <div><h4>If you stake $DSCL</h4><p>You get <b>a slice of every mirror at once</b>, paid in the stock tokens those mirrors buy, and you vote on which sources get whitelisted.</p></div>
+      </div>
+    </div>
+
+    <div class="panel" id="livePanel">
+      <div class="panel-h"><h3>Live mirror</h3><span class="sim">Simulated until launch</span></div>
+      <div class="src"><div class="av" id="lpAv">KR</div><div><b id="lpName">Kestrel Ridge Capital</b><span id="lpMeta">13F · $4.1B AUM · 18 positions</span></div></div>
+      <div class="lagbar">
+        <div class="t"><span id="lpFiled">filed 31 days ago</span><span id="lpNext">next filing in 59 days</span></div>
+        <div class="tr"><i id="lpBar" style="width:34%"></i></div>
+      </div>
+      <div class="rows" id="lpRows"></div>
+      <div class="feed"><h4>Filing feed</h4><div id="lpFeed"></div></div>
+    </div>
+  </div>
+</div>
+
+<section id="desk">
+  <div class="wrap">
+    <div class="sec-h">
+      <div class="eyebrow"><b>01</b> The copy desk</div>
+      <h2>Pick a filer. <em>Watch the basket build itself.</em></h2>
+      <p class="lead">This is the launch flow, running live on simulated data. Choose whose portfolio your coin should copy, decide how faithful the copy is, and see the basket, the rewards and the honest problems before anything is deployed.</p>
+    </div>
+
+    <div class="desk">
+      <div class="box">
+        <div class="box-h">Filing source <span class="r" id="srcCount">8 whitelisted</span></div>
+        <div class="box-b">
+          <div class="srcs" id="srcList"></div>
+          <div class="fld">
+            <label>Mirror mode</label>
+            <div class="segs" id="modeSegs">
+              <button class="seg on" data-m="full">Full copy</button>
+              <button class="seg" data-m="top5">Top 5 only</button>
+              <button class="seg" data-m="eq">Equal weight</button>
+              <button class="seg" data-m="conv">High conviction</button>
+            </div>
+          </div>
+          <div class="fld">
+            <label>Cap per name <b id="capV">25%</b></label>
+            <input type="range" id="cap" min="8" max="40" step="1" value="25">
+          </div>
+          <div class="fld">
+            <label>Creator fee routed to the basket <b id="routeV">70%</b></label>
+            <input type="range" id="route" min="40" max="90" step="5" value="70">
+          </div>
+          <div class="fld">
+            <label>Assumed daily volume <b id="volV">$420,000</b></label>
+            <input type="range" id="vol" min="10" max="400" step="5" value="42">
+          </div>
+          <div class="fld">
+            <label>Rebalance drift trigger <b id="driftV">5%</b></label>
+            <input type="range" id="drift" min="1" max="15" step="1" value="5">
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;gap:18px">
+        <div class="box">
+          <div class="box-h">Mirrored basket <span class="r" id="bkSrc">Kestrel Ridge Capital · 13F</span></div>
+          <div class="box-b">
+            <div class="scr"><table class="bk" id="bkTbl"></table></div>
+            <div class="plain" id="bkPlain"></div>
+          </div>
+        </div>
+
+        <div class="mets" id="deskMets"></div>
+
+        <div class="cards c2">
+          <div class="box">
+            <div class="box-h">What the last filing changed</div>
+            <div class="box-b"><div class="diff" id="diffList"></div></div>
+          </div>
+          <div class="box">
+            <div class="box-h">Rewards, if the volume holds</div>
+            <div class="box-b" id="rewBox"></div>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="box-b" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <button class="btn acc" id="qSign">Connect wallet to bind this basket</button>
+            <button class="btn ghost" id="copyJson">Copy basket as JSON</button>
+            <span class="note" id="qNote" style="margin:0"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="sec-h">
+      <div class="eyebrow"><b>02</b> How it works</div>
+      <h2>Five steps, and <em>none of them is a stock pick.</em></h2>
+    </div>
+    <div class="steps">
+      <div><span class="n">01</span><h4>Bind</h4><p>A coin launches bound to one whitelisted filing source. The binding is written on chain and <b>cannot be edited by the creator afterwards</b> — only migrated, with a 7-day notice holders can see.</p></div>
+      <div><span class="n">02</span><h4>Trade</h4><p>People trade the coin. Every swap pays the standard creator fee, exactly as it does for any coin on Robinhood Chain.</p></div>
+      <div><span class="n">03</span><h4>Route</h4><p>The chosen share of that fee goes straight to the coin's reward vault in ETH. The rest pays the creator, $DSCL stakers and the rebalance reserve.</p></div>
+      <div><span class="n">04</span><h4>Mirror</h4><p>The vault buys tokenized stocks in the filed weights. When a new filing lands, or drift passes your trigger, it <b>rebalances into the new weights</b> over a randomized window.</p></div>
+      <div><span class="n">05</span><h4>Claim</h4><p>Every week the vault opens a claim window. Holders claim their share of the stock tokens, straight to their wallet. Unclaimed shares roll into the next window.</p></div>
+    </div>
+    <div class="cards c2" style="margin-top:14px">
+      <div class="card">
+        <span class="n">FEE SPLIT</span>
+        <h3>Where each fee goes</h3>
+        <p>Your routing slider moves the first number. The remaining share always splits the same way: <b>2 parts to the creator, 1 part to $DSCL stakers, 1 part to the rebalance reserve</b> that pays swap costs so the vault never sells stock to fund its own trades.</p>
+        <div class="split" id="splitBar" style="margin-top:14px"></div>
+      </div>
+      <div class="card">
+        <span class="n">WHAT A MIRROR IS NOT</span>
+        <h3>The coin is not the stock</h3>
+        <p>Holding the coin does not make you an owner of anything the filer owns, and the coin's price is its own market. What the vault buys, the vault distributes — <b>the basket is a reward stream, not a claim on the filer</b>. Filers are mirrored from public records and are not partners, advisers or endorsers.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sources">
+  <div class="wrap">
+    <div class="sec-h">
+      <div class="eyebrow"><b>03</b> Sources</div>
+      <h2>Everything here is <em>already public.</em></h2>
+      <p class="lead">A source is a document type plus a filer. DISCLOSED never uses private data, tips or off-record positions — if a position is not in a filing that anyone can pull up, the mirror does not know about it.</p>
+    </div>
+    <div class="tbl-w scr">
+      <table class="big" id="srcTbl"></table>
+    </div>
+    <div class="cards c3" style="margin-top:16px">
+      <div class="card"><span class="n">COVERAGE</span><h3>Only what exists as a token</h3><p>A mirror can only buy names that exist as stock tokens on Robinhood Chain. Anything else — private positions, options, foreign lines — is <b>reported in the basket and routed to the cash sleeve</b> instead of quietly dropped.</p></div>
+      <div class="card"><span class="n">WHITELIST</span><h3>Sources are voted in</h3><p>New filers reach the desk through a $DSCL vote. The bar is boring on purpose: <b>a public, machine-readable document with a fixed cadence</b>, and at least four filings of history.</p></div>
+      <div class="card"><span class="n">NAMING</span><h3>The filer is named, never involved</h3><p>Every mirror shows the exact document and date it copies. A filer can ask to be delisted, and the mirror then <b>freezes at its last basket</b> instead of pretending to keep tracking.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="lag">
+  <div class="wrap">
+    <div class="sec-h">
+      <div class="eyebrow"><b>04</b> The lag</div>
+      <h2>Copying late is <em>still copying.</em></h2>
+      <p class="lead">A 13F shows you what a fund held up to 45 days ago. Pretending that is live data is how copy products quietly lie. So here is the honest version: move the slider and see what a delay did to the same basket over the last eight quarters of simulated data.</p>
+    </div>
+    <div class="sim-g">
+      <div class="box">
+        <div class="box-h">Lag simulator</div>
+        <div class="box-b">
+          <div class="fld">
+            <label>Filing delay <b id="lagV">45 days</b></label>
+            <input type="range" id="lag" min="0" max="90" step="1" value="45">
+          </div>
+          <div class="fld">
+            <label>Source turnover <b id="toV">moderate</b></label>
+            <div class="segs" id="toSegs">
+              <button class="seg" data-t="0.12">Slow</button>
+              <button class="seg on" data-t="0.3">Moderate</button>
+              <button class="seg" data-t="0.62">Fast</button>
+            </div>
+          </div>
+          <div class="mets" style="grid-template-columns:1fr 1fr;margin-top:16px">
+            <div><h5>Source return</h5><b id="lagSrc">—</b><span>8 quarters</span></div>
+            <div><h5>Mirror return</h5><b id="lagMir">—</b><span>same window</span></div>
+          </div>
+          <div class="plain" id="lagPlain"></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-h">Quarter by quarter <span class="r">simulated</span></div>
+        <div class="box-b">
+          <div class="bars" id="lagBars"></div>
+          <div class="leg"><span><i style="background:var(--ink-blue);opacity:.45"></i>Source</span><span><i style="background:var(--acc)"></i>Mirror at this lag</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="rules" style="margin-top:18px">
+      <div class="rule"><span class="id">M1</span><div><h4>Weights come from the document, not from a model</h4><p>The mirror reads the filed weights and normalises them over the names it can actually hold. No opinion, no overlay, no "improved" version of someone else's portfolio.</p></div></div>
+      <div class="rule"><span class="id">M2</span><div><h4>A cap, so one name cannot become the whole coin</h4><p>Your cap per name is enforced at every rebalance. Anything above it spills proportionally into the rest of the basket.</p></div></div>
+      <div class="rule"><span class="id">M3</span><div><h4>Rebalance only on a new filing or real drift</h4><p>Nothing trades because the market moved a little. A rebalance fires on a new document, or when weights drift past your trigger.</p></div></div>
+      <div class="rule"><span class="id">M4</span><div><h4>Randomised execution window</h4><p>Filing dates are public, so a fixed buy time is a free lunch for anyone watching. Every rebalance executes in slices across a randomised window of several hours.</p></div></div>
+      <div class="rule"><span class="id">M5</span><div><h4>The vault never sells stock to pay for itself</h4><p>Swap costs and gas come out of the rebalance reserve. The stock sleeve only shrinks when the filing says it should.</p></div></div>
+      <div class="rule"><span class="id">M6</span><div><h4>Stale means stale, in public</h4><p>Every mirror carries the filing date, the days since, and the next expected document. If a source stops filing, the mirror is marked <b>stale</b> on the market page and stops buying new names.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="mirrors">
+  <div class="wrap">
+    <div class="sec-h">
+      <div class="eyebrow"><b>05</b> Mirrors</div>
+      <h2>Coins already <em>pointed at a document.</em></h2>
+      <p class="lead">Click any row to load that source into the copy desk.</p>
+    </div>
+    <div class="tbl-w scr"><table class="big" id="mirTbl"></table></div>
+  </div>
+</section>
+
+<section id="token">
+  <div class="wrap">
+    <div class="sec-h">
+      <div class="eyebrow"><b>06</b> $DSCL</div>
+      <h2>One stake, <em>every basket.</em></h2>
+      <p class="lead">$DSCL is the whitelist and the index of the whole thing. A quarter of every mirror's non-basket fee flows to stakers — and it is paid in the stock tokens those mirrors buy, not in the token itself.</p>
+    </div>
+    <div class="tok-g">
+      <div class="cards c2" style="gap:14px">
+        <div class="card"><span class="n">PAID IN STOCK</span><h3>A slice of every mirror</h3><p>Staking pays out from all live mirrors at once, in the same stock tokens they hold. <b>The more sources get whitelisted, the wider that basket gets</b>, without you binding to any single filer.</p></div>
+        <div class="card"><span class="n">VOTES</span><h3>Which documents count</h3><p>Stakers vote on new source types and new filers, and can freeze a source that stops filing on time. <b>One vote per staked token, snapshot at the epoch start.</b></p></div>
+        <div class="card"><span class="n">LAUNCH DISCOUNT</span><h3>Cheaper to bind</h3><p>Launching a mirror costs a flat fee in ETH. Stakers pay less, and above a threshold the launch fee is waived entirely.</p></div>
+        <div class="card"><span class="n">BACKSTOP</span><h3>The reserve of last resort</h3><p>If a mirror's rebalance reserve runs dry in a violent week, the staking pool covers the swap costs first, so <b>holders' stock sleeve is never touched to pay for trading</b>.</p></div>
+      </div>
+      <div class="box">
+        <div class="box-h">Parameters</div>
+        <div class="box-b">
+          <table class="bk" id="tokTbl"></table>
+          <div class="tok-bal" id="tokBal">Connect a wallet on Robinhood Chain to see your $DSCL.</div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:12px;align-items:center">
+            <button class="btn acc" id="dSign">Connect wallet to register for the first claim window</button>
+            <button class="btn ghost" id="wBtn3"><span class="wl3">Connect wallet</span></button>
+          </div>
+          <div class="note" id="dNote"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="rollout">
+  <div class="wrap">
+    <div class="sec-h">
+      <div class="eyebrow"><b>07</b> Rollout</div>
+      <h2>What is real <em>right now.</em></h2>
+    </div>
+    <div class="roll">
+      <div class="card"><h3>Now</h3><ul>
+        <li>The copy desk on this page, running on <b>simulated filers and simulated data</b>.</li>
+        <li>Basket construction, caps, drift and lag maths are the ones that ship.</li>
+        <li>You can bind a basket with a <b>gasless signature</b> — it reserves the source, it does not deploy anything.</li>
+      </ul></div>
+      <div class="card"><h3>At launch</h3><ul>
+        <li>First eight sources whitelisted, all <b>quarterly and insider documents</b>.</li>
+        <li>Mirrors deploy from the desk; the binding goes on chain with the coin.</li>
+        <li><b>Weekly claim windows</b>, weekly rebalance checks, a public log of every document read.</li>
+      </ul></div>
+      <div class="card"><h3>After</h3><ul>
+        <li>Daily-cadence sources: ETF holdings, index reconstitutions.</li>
+        <li>Source votes and freezes move fully to <b>$DSCL governance</b>.</li>
+        <li>Mirror migration, so a coin can follow a filer who moves firms.</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<div class="final">
+  <div class="wrap">
+    <h2>Somebody already <em>did the work and filed it.</em></h2>
+    <div class="cta">
+      <a class="btn acc lg" href="#desk">Open the copy desk</a>
+      <a class="btn ghost lg" href="#sources">See the sources</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap ft">
+    <p>DISCLOSED mirrors public filings on Robinhood Chain. It is not affiliated with, endorsed by or advised by any filer, fund or issuer, and holding a mirror coin is not ownership of any security. Filers, baskets and figures shown on this page are simulated examples until the first mirror opens. Stock rewards depend on trading volume and can be zero. © 2026</p>
+    <div class="fl"><a href="#" class="xLink" target="_blank" rel="noopener">X</a><a href="#desk">Copy desk</a><a href="#lag">The lag</a><a href="#token">$DSCL</a></div>
+  </div>
+</footer>
+
+<div class="ov" id="ov" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="modal">
+    <div class="modal-h"><h3 id="mTitle">Connect wallet</h3><button class="x" id="mClose" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg></button></div>
+    <div class="modal-b" id="mBody"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+/* ============ SETTINGS ============ */
+window.CONTRACT = "";           /* $DSCL contract address on Robinhood Chain */
+window.TWITTER  = "";           /* https://x.com/... */
+window.BUY_URL  = "";           /* buy link — set by hand */
+window.WC_PROJECT_ID = "";      /* WalletConnect / Reown project id (cloud.reown.com) */
+/* ================================== */
+</script>
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id);};
+function esc(s){ return String(s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function f(n,d){ if(!isFinite(n)) return '—'; return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function pct(n,d){ return f(n,d==null?1:d)+'%'; }
+function usd(n){ var a=Math.abs(n); return '$'+f(n, a>=1000?0:a>=100?0:a>=10?1:2); }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function store(k,v){ try{ if(v===undefined) return localStorage.getItem(k); if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v); }catch(e){ return null; } }
+
+var toastT=null;
+window.toast=function(m){ var t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('on'); },2600); };
+
+/* ---------- sound ---------- */
+var AC=null, SND=store('dsc_snd')!=='0';
+function ac(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; } } if(AC&&AC.state==='suspended') AC.resume(); return AC; }
+window.tone=function(a,b,d,t,g){
+  if(!SND) return; var c=ac(); if(!c) return;
+  var o=c.createOscillator(), v=c.createGain();
+  o.type=t||'sine'; o.frequency.setValueAtTime(a,c.currentTime);
+  if(b&&b!==a) o.frequency.exponentialRampToValueAtTime(Math.max(30,b),c.currentTime+(d||.1));
+  v.gain.setValueAtTime(0,c.currentTime);
+  v.gain.linearRampToValueAtTime(g||.04,c.currentTime+.008);
+  v.gain.exponentialRampToValueAtTime(.0001,c.currentTime+(d||.1));
+  o.connect(v); v.connect(c.destination); o.start(); o.stop(c.currentTime+(d||.1)+.03);
+};
+function noise(dur,gain,hp){
+  if(!SND) return; var c=ac(); if(!c) return;
+  var n=Math.floor(c.sampleRate*dur), buf=c.createBuffer(1,n,c.sampleRate), d=buf.getChannelData(0);
+  for(var i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
+  var s=c.createBufferSource(); s.buffer=buf;
+  var fl=c.createBiquadFilter(); fl.type='highpass'; fl.frequency.value=hp||1200;
+  var g=c.createGain(); g.gain.value=gain||.05;
+  s.connect(fl); fl.connect(g); g.connect(c.destination); s.start();
+}
+var SFX={
+  stamp:function(){ window.tone(180,54,.16,'square',.07); noise(.12,.05,700); },
+  paper:function(){ noise(.16,.035,2200); },
+  buy:function(){ window.tone(520,880,.1,'triangle',.04); },
+  sell:function(){ window.tone(430,280,.11,'triangle',.035); },
+  coin:function(){ window.tone(880,1320,.08,'sine',.045); setTimeout(function(){ window.tone(1320,1760,.1,'sine',.035); },70); },
+  tick:function(){ window.tone(1200,1200,.03,'square',.016); }
+};
+function paintSnd(){ var b=$('sndBtn'); b.classList.toggle('off',!SND); b.title=SND?'Sound on':'Sound off'; b.querySelectorAll('.sw').forEach(function(p){ p.style.opacity=SND?1:.15; }); }
+$('sndBtn').addEventListener('click',function(){ SND=!SND; store('dsc_snd',SND?'1':'0'); paintSnd(); if(SND) SFX.tick(); });
+paintSnd();
+
+/* ---------- settings-driven bits ---------- */
+(function(){
+  var tw=(window.TWITTER||'').trim(), buy=(window.BUY_URL||'').trim(), ca=(window.CONTRACT||'').trim();
+  document.querySelectorAll('.xLink').forEach(function(a){
+    if(tw){ a.href=tw; } else a.addEventListener('click',function(e){ e.preventDefault(); window.toast('X account goes live with the first mirror.'); });
+  });
+  $('buyBtn').addEventListener('click',function(){ if(buy) window.open(buy,'_blank','noopener'); else window.toast('$DSCL is not tradable yet — the buy link lands here at launch.'); });
+  if(ca) $('caChip').textContent=ca.slice(0,6)+'…'+ca.slice(-4);
+})();
+
+/* ---------- tape ---------- */
+(function(){
+  var items=['<i>●</i> the basket is <b>copied</b>, never picked','sources: <b>13F · Form 4 · PTR · ETF holdings</b>','rewards paid in <b>tokenized stocks</b>','filing date and lag shown on <b>every mirror</b>','rebalance on a <b>new document</b> or real drift','execution in slices, <b>randomised window</b>','cap per name <b>8% → 40%</b>, set at launch','untokenized positions go to the <b>cash sleeve</b>','claim windows <b>every week</b>','a source that stops filing is marked <b>stale</b>','$DSCL stakers are paid in <b>stock, not tokens</b>','Robinhood Chain · <b>4663</b>'];
+  var h=items.map(function(x){ return '<li>'+x+'</li>'; }).join('');
+  $('tape').innerHTML=h+h;
+})();
+
+/* ---------- stamp ---------- */
+(function(){
+  var words=['FILED','ON RECORD','13F','COPIED','PUBLIC','FORM 4','AS OF','NO EDITS'], n=0;
+  $('stamp').addEventListener('click',function(e){
+    SFX.stamp();
+    var r=this.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
+    for(var i=0;i<3;i++){
+      (function(i){
+        setTimeout(function(){
+          var m=document.createElement('div'); m.className='mark';
+          m.textContent=words[Math.floor(Math.random()*words.length)];
+          var a=Math.random()*Math.PI*2, d=70+Math.random()*190;
+          m.style.left=clamp(cx+Math.cos(a)*d,60,window.innerWidth-60)+'px';
+          m.style.top=clamp(cy+Math.sin(a)*d,60,window.innerHeight-60)+'px';
+          m.style.setProperty('--r',(Math.random()*30-15)+'deg');
+          document.body.appendChild(m);
+          setTimeout(function(){ m.style.transition='opacity .7s'; m.style.opacity=0; setTimeout(function(){ m.remove(); },750); },1500);
+          if(i) SFX.paper();
+        },i*110);
+      })(i);
+    }
+    n++;
+    if(n===4){ window.toast('Every mirror starts exactly like this: a document, a date, a stamp.'); SFX.coin(); }
+  });
+})();
+
+/* ---------- data: filing sources ---------- */
+/* w = filed weight %, tok = exists as a stock token on Robinhood Chain */
+var SOURCES=[
+ {id:'kestrel',name:'Kestrel Ridge Capital',ab:'KR',doc:'13F',kind:'Quarterly institutional holdings',cad:'quarterly',lagDays:31,nextIn:59,aum:'$4.1B',turn:.30,
+  pos:[['NVDA',14.2,1],['MSFT',11.8,1],['AAPL',9.6,1],['AMZN',8.1,1],['GOOGL',7.4,1],['AVGO',6.2,1],['LLY',5.5,1],['V',4.8,1],['COST',4.1,1],['UNH',3.6,1],['NFLX',3.4,1],['AMD',3.1,1],['CRM',2.8,1],['ASML',2.6,0],['TSM',2.4,0],['SHOP',2.2,1],['UBER',2.1,1],['SNOW',1.9,1]],
+  diff:[['b','NVDA','added','+2.4%'],['s','AAPL','trimmed','−1.9%'],['n','UBER','new position','2.1%'],['x','PYPL','exited','−1.6%'],['b','LLY','added','+0.8%']],
+  q:[6.2,-3.1,9.4,4.8,-2.2,11.6,3.3,7.1]},
+
+ {id:'marin',name:'Marin & Cole Partners',ab:'MC',doc:'13F',kind:'Concentrated value fund',cad:'quarterly',lagDays:44,nextIn:47,aum:'$980M',turn:.12,
+  pos:[['BRK.B',18.4,1],['JPM',14.1,1],['CVX',12.6,1],['KO',10.2,1],['MCD',9.4,1],['UNP',8.1,1],['MMC',7.3,1],['ADP',6.5,1],['TRV',5.9,1],['NEE',4.2,1]],
+  diff:[['b','CVX','added','+1.7%'],['s','KO','trimmed','−0.9%'],['n','NEE','new position','4.2%'],['b','JPM','added','+0.6%']],
+  q:[3.1,1.8,4.2,2.6,-1.1,5.4,2.2,3.8]},
+
+ {id:'hallam',name:'Senator D. Hallam',ab:'DH',doc:'PTR',kind:'Lawmaker transaction report',cad:'per trade, 30–45 day window',lagDays:38,nextIn:21,aum:'disclosed in bands',turn:.48,
+  pos:[['PLTR',16.8,1],['LMT',13.2,1],['RTX',11.4,1],['NVDA',10.6,1],['CEG',9.1,1],['GEV',8.4,1],['CAT',7.2,1],['XOM',6.8,1],['BA',6.1,1],['VST',5.4,1],['SMR',5.0,0]],
+  diff:[['n','GEV','new position','8.4%'],['b','PLTR','added','+3.1%'],['x','INTC','exited','−4.2%'],['b','CEG','added','+2.0%'],['s','BA','trimmed','−1.2%']],
+  q:[9.8,-5.4,14.2,7.6,-3.9,18.1,5.2,10.4]},
+
+ {id:'novapoint',name:'Novapoint Industries insiders',ab:'NI',doc:'Form 4',kind:'Insider open-market buys',cad:'2 business days',lagDays:2,nextIn:9,aum:'6 filers',turn:.55,
+  pos:[['NVPT',31.0,0],['ETN',16.4,1],['PH',14.2,1],['EMR',12.6,1],['ROK',11.1,1],['HON',9.4,1],['DOV',5.3,1]],
+  diff:[['b','ETN','CFO bought','+4.1%'],['n','DOV','director bought','5.3%'],['b','ROK','CEO bought','+2.8%'],['s','HON','10b5-1 sale','−1.4%']],
+  q:[7.4,2.2,6.8,-4.1,8.9,3.6,-2.4,9.2]},
+
+ {id:'brightarc',name:'Bright Arc Innovation ETF',ab:'BA',doc:'Daily holdings',kind:'Published fund holdings',cad:'daily, T+1',lagDays:1,nextIn:1,aum:'$6.4B',turn:.62,
+  pos:[['TSLA',12.4,1],['COIN',10.8,1],['RBLX',8.6,1],['HOOD',8.2,1],['PLTR',7.9,1],['SHOP',7.1,1],['RKLB',6.8,1],['TWLO',6.2,1],['DKNG',5.6,1],['TDOC',5.1,1],['PATH',4.8,1],['Z',4.4,1],['SPCX',6.1,0],['ARKX',6.0,0]],
+  diff:[['b','COIN','added','+2.2%'],['s','TSLA','trimmed','−3.4%'],['n','RKLB','new position','6.8%'],['x','ROKU','exited','−3.1%'],['b','HOOD','added','+1.9%']],
+  q:[18.4,-14.2,26.8,-6.4,21.1,-9.8,15.6,12.2]},
+
+ {id:'olympia',name:'Olympia State Pension',ab:'OP',doc:'13F',kind:'Public pension holdings',cad:'quarterly',lagDays:41,nextIn:50,aum:'$52B',turn:.08,
+  pos:[['AAPL',7.2,1],['MSFT',6.9,1],['NVDA',6.4,1],['AMZN',4.8,1],['META',4.1,1],['GOOGL',3.9,1],['BRK.B',3.4,1],['JPM',3.1,1],['XOM',2.8,1],['JNJ',2.6,1],['PG',2.4,1],['HD',2.2,1],['MRK',2.0,1],['ABBV',1.9,1],['PEP',1.8,1],['KO',1.7,1],['WMT',1.6,1],['CVX',1.5,1],['BAC',1.4,1],['PFE',1.3,1],['INTL-SLEEVE',18.2,0],['PRIVATE-EQ',14.8,0]],
+  diff:[['b','NVDA','added','+0.9%'],['s','PFE','trimmed','−0.4%'],['b','WMT','added','+0.3%'],['s','INTC','exited','−0.6%']],
+  q:[4.2,-1.8,6.1,3.2,-0.9,7.4,2.8,4.6]},
+
+ {id:'orchard',name:'CEO of Orchard Labs',ab:'OL',doc:'Form 4',kind:'Single-insider filings',cad:'2 business days',lagDays:3,nextIn:14,aum:'1 filer',turn:.35,
+  pos:[['ORCL',34.2,1],['NOW',24.6,1],['SNOW',18.4,1],['MDB',12.8,1],['DDOG',10.0,1]],
+  diff:[['b','ORCL','bought','+6.2%'],['n','DDOG','new position','10.0%'],['s','SNOW','sold','−4.4%']],
+  q:[11.2,-8.6,16.4,2.2,-6.1,13.8,4.4,8.1]},
+
+ {id:'beltway',name:'The Beltway Composite',ab:'BC',doc:'PTR aggregate',kind:'All lawmaker reports, aggregated',cad:'rolling, 30–45 days',lagDays:36,nextIn:12,aum:'214 filers',turn:.44,
+  pos:[['NVDA',11.2,1],['MSFT',9.4,1],['AAPL',8.6,1],['AMZN',7.2,1],['GOOGL',6.4,1],['META',5.8,1],['AVGO',5.2,1],['LMT',4.8,1],['RTX',4.4,1],['JPM',4.1,1],['XOM',3.8,1],['CRM',3.4,1],['DIS',3.1,1],['PLTR',2.9,1],['TMUS',2.6,1],['MUNI-SLEEVE',17.1,0]],
+  diff:[['b','NVDA','net buys','+1.8%'],['n','PLTR','net new','2.9%'],['s','DIS','net sells','−1.1%'],['b','AVGO','net buys','+0.9%'],['x','WFC','net exit','−1.4%']],
+  q:[7.1,-3.8,10.2,5.4,-2.6,12.4,4.1,6.8]}
+];
+var byId={}; SOURCES.forEach(function(s){ byId[s.id]=s; });
+
+/* ---------- basket maths ---------- */
+var ST={src:'kestrel',mode:'full',cap:25,route:70,vol:42,drift:5};
+function build(){
+  var s=byId[ST.src], pos=s.pos.map(function(p){ return {t:p[0],w:p[1],tok:!!p[2]}; });
+  var total=pos.reduce(function(a,p){ return a+p.w; },0);
+  pos.forEach(function(p){ p.filed=p.w/total*100; });
+  var keep=pos.filter(function(p){ return p.tok; }).slice();
+  if(ST.mode==='top5') keep=keep.slice().sort(function(a,b){ return b.filed-a.filed; }).slice(0,5);
+  if(ST.mode==='conv') keep=keep.filter(function(p){ return p.filed>=6; });
+  if(!keep.length) keep=pos.filter(function(p){ return p.tok; }).slice(0,3);
+  var sleeve=pos.filter(function(p){ return !p.tok; }).reduce(function(a,p){ return a+p.filed; },0);
+  var dropped=pos.filter(function(p){ return p.tok&&keep.indexOf(p)<0; }).reduce(function(a,p){ return a+p.filed; },0);
+  var base=keep.reduce(function(a,p){ return a+p.filed; },0);
+  keep.forEach(function(p){ p.m = ST.mode==='eq' ? 100/keep.length : p.filed/base*100; });
+  /* cap, redistribute the overflow proportionally */
+  for(var it=0; it<14; it++){
+    var over=0, room=0;
+    keep.forEach(function(p){ if(p.m>ST.cap){ over+=p.m-ST.cap; p.m=ST.cap; } else room+=ST.cap-p.m; });
+    if(over<.01||room<.01) break;
+    keep.forEach(function(p){ if(p.m<ST.cap) p.m+=over*((ST.cap-p.m)/room); });
+  }
+  keep.sort(function(a,b){ return b.m-a.m; });
+  return {s:s,keep:keep,sleeve:sleeve,dropped:dropped,names:keep.length};
+}
+function feeUsd(){ return ST.vol*10000*0.01; }               /* daily creator fee, 1% of volume */
+function toBasketWeek(){ return feeUsd()*(ST.route/100)*7; } /* weekly $ into the basket */
+function trackErr(b){
+  var s=b.s;
+  var modePen = ST.mode==='full'?0:ST.mode==='top5'?3.4:ST.mode==='eq'?2.6:1.9;
+  var capPen = b.keep.reduce(function(a,p){ return a+Math.max(0,p.filed/ (b.keep.reduce(function(x,y){return x+y.filed;},0)) *100 - ST.cap); },0)*.12;
+  var lagPen = s.turn*(s.lagDays/90)*7.5;
+  var sleevePen = b.sleeve*.06 + b.dropped*.05;
+  var driftPen = ST.drift*.22;
+  return modePen+capPen+lagPen+sleevePen+driftPen;
+}
+function rebPerYear(b){
+  var docs = b.s.cad==='quarterly'?4:b.s.id==='brightarc'?52:12;
+  return Math.round(docs + (b.s.turn*160)/Math.max(1,ST.drift));
+}
+
+function renderBasket(){
+  var b=build(), s=b.s;
+  $('bkSrc').textContent=s.name+' · '+s.doc;
+  var rows='<tr><th>Name</th><th>Filed</th><th>Mirrored</th><th>Cap Δ</th><th>Status</th></tr>';
+  b.keep.forEach(function(p){
+    var base=b.keep.reduce(function(x,y){ return x+y.filed; },0);
+    var norm=p.filed/base*100, d=p.m-norm;
+    rows+='<tr><td class="n"><b>'+esc(p.t)+'</b></td><td>'+pct(p.filed,1)+'</td><td><b>'+pct(p.m,1)+'</b></td>'+
+      '<td class="'+(d>.05?'up':d<-.05?'dn':'off')+'">'+(Math.abs(d)<.05?'—':(d>0?'+':'−')+pct(Math.abs(d),1))+'</td>'+
+      '<td><span class="tag ok">held</span></td></tr>';
+  });
+  var pos=s.pos.filter(function(p){ return !p[2]; });
+  pos.forEach(function(p){
+    rows+='<tr class="dead"><td class="n">'+esc(p[0])+' <i>no stock token</i></td><td>'+pct(p[1],1)+'</td><td>—</td><td class="off">—</td><td><span class="tag no">cash sleeve</span></td></tr>';
+  });
+  if(b.sleeve>0) rows+='<tr><td class="n"><b>Cash sleeve</b> <i>T-bill, claimable</i></td><td>—</td><td><b>'+pct(b.sleeve,1)+'</b></td><td class="off">—</td><td><span class="tag">parked</span></td></tr>';
+  $('bkTbl').innerHTML=rows;
+
+  var te=trackErr(b), reb=rebPerYear(b);
+  $('deskMets').innerHTML=
+    met('Names held',b.names,'of '+s.pos.length+' filed')+
+    met('Cash sleeve',pct(b.sleeve,1),'not tokenized')+
+    met('Tracking error',pct(te,1),'annual, estimated')+
+    met('Rebalances',reb+'/yr','documents + drift');
+
+  var week=toBasketWeek();
+  var per1m=week/1000; /* 1M of a 1,000,000,000 supply = 0.1% */
+  $('rewBox').innerHTML=
+    '<table class="bk">'+
+    row2('Creator fee, daily',usd(feeUsd()),'1% of '+usd(ST.vol*10000)+' volume')+
+    row2('Into the basket, weekly',usd(week),ST.route+'% routed')+
+    row2('Stocks bought, yearly',usd(week*52),'at this volume')+
+    row2('Per 1M tokens, weekly',usd(per1m),'0.1% of supply')+
+    '</table>'+
+    '<div class="plain">At <b>'+usd(ST.vol*10000)+'</b> a day, a bag of 1M tokens claims about <b>'+usd(per1m)+'</b> of stock a week — roughly <b>'+usd(per1m*52)+'</b> a year, weighted like '+esc(s.name)+'’s book. Volume dries up, the stock stops arriving: <b>the rewards are the trading, not a promise</b>.</div>';
+
+  var dh='';
+  s.diff.forEach(function(d){
+    var cls=d[0]==='b'?'b':d[0]==='n'?'n':'s', lbl=d[0]==='b'?'BUY':d[0]==='n'?'NEW':d[0]==='x'?'EXIT':'SELL';
+    dh+='<div class="dl"><span class="a '+cls+'">'+lbl+'</span><div><b>'+esc(d[1])+'</b> <span>'+esc(d[2])+'</span></div><span class="v">'+esc(d[3])+'</span></div>';
+  });
+  $('diffList').innerHTML=dh+'<div class="note">Read from the document filed <b>'+s.lagDays+' days ago</b>. The next one is expected in <b>'+s.nextIn+' days</b>.</div>';
+
+  var modeTxt={full:'the whole book',top5:'only the five biggest positions',eq:'every held name at the same size',conv:'positions the filer sized above 6%'}[ST.mode];
+  $('bkPlain').innerHTML='This mirror copies <b>'+modeTxt+'</b> of '+esc(s.name)+', capped at <b>'+ST.cap+'%</b> per name. '+
+    (b.sleeve>0?'<b>'+pct(b.sleeve,1)+'</b> of the filed book has no stock token on Robinhood Chain, so that share sits in the cash sleeve and is claimable as it is. ':'Every filed position exists as a stock token, so nothing is left behind. ')+
+    'Expect roughly <b>'+rebPerYear(b)+' rebalances a year</b> and about <b>'+pct(trackErr(b),1)+'</b> of annual tracking error against the filer’s real book.';
+
+  window.__basket=function(){
+    return 'DISCLOSED mirror binding\n\nsource: '+s.name+' ('+s.doc+')\nmode: '+ST.mode+'\ncap per name: '+ST.cap+'%\nfee routed to basket: '+ST.route+'%\ndrift trigger: '+ST.drift+'%\nnames: '+b.keep.map(function(p){ return p.t+' '+p.m.toFixed(1)+'%'; }).join(', ')+'\ncash sleeve: '+b.sleeve.toFixed(1)+'%';
+  };
+  window.__basketShort=function(){ return s.name+' · '+ST.mode+' · cap '+ST.cap+'%'; };
+  window.__basketJson=function(){
+    return JSON.stringify({source:s.name,document:s.doc,filed_days_ago:s.lagDays,mode:ST.mode,cap_pct:ST.cap,route_pct:ST.route,drift_pct:ST.drift,
+      holdings:b.keep.map(function(p){ return {ticker:p.t,filed:+p.filed.toFixed(2),mirrored:+p.m.toFixed(2)}; }),cash_sleeve_pct:+b.sleeve.toFixed(2)},null,2);
+  };
+}
+function met(h,v,s){ return '<div><h5>'+h+'</h5><b>'+v+'</b><span>'+s+'</span></div>'; }
+function row2(a,b,c){ return '<tr><td class="n">'+a+' <i>'+c+'</i></td><td><b>'+b+'</b></td></tr>'; }
+
+/* ---------- desk wiring ---------- */
+(function(){
+  $('srcList').innerHTML=SOURCES.map(function(s){
+    return '<button class="srcopt'+(s.id===ST.src?' on':'')+'" data-s="'+s.id+'"><span class="av">'+s.ab+'</span><span><b>'+esc(s.name)+'</b><span>'+s.doc+' · '+s.pos.length+' positions · '+s.lagDays+'d old</span></span></button>';
+  }).join('');
+  $('srcCount').textContent=SOURCES.length+' whitelisted';
+  $('srcList').addEventListener('click',function(e){
+    var b=e.target.closest('.srcopt'); if(!b) return;
+    ST.src=b.dataset.s;
+    this.querySelectorAll('.srcopt').forEach(function(x){ x.classList.toggle('on',x===b); });
+    SFX.paper(); renderBasket(); setLive(ST.src);
+  });
+  $('modeSegs').addEventListener('click',function(e){
+    var b=e.target.closest('.seg'); if(!b) return;
+    ST.mode=b.dataset.m;
+    this.querySelectorAll('.seg').forEach(function(x){ x.classList.toggle('on',x===b); });
+    SFX.tick(); renderBasket();
+  });
+  function slider(id,key,fmt){
+    var el=$(id); el.addEventListener('input',function(){
+      ST[key]=+el.value; $(id+'V').textContent=fmt(+el.value); renderBasket(); splitBar();
+    });
+    el.addEventListener('change',function(){ SFX.tick(); });
+    $(id+'V').textContent=fmt(+el.value);
+  }
+  slider('cap','cap',function(v){ return v+'%'; });
+  slider('route','route',function(v){ return v+'%'; });
+  slider('vol','vol',function(v){ return '$'+f(v*10000,0); });
+  slider('drift','drift',function(v){ return v+'%'; });
+  $('copyJson').addEventListener('click',function(){
+    var b=this; navigator.clipboard.writeText(window.__basketJson()).then(function(){
+      b.textContent='Copied'; SFX.coin(); setTimeout(function(){ b.textContent='Copy basket as JSON'; },1400);
+    }).catch(function(){ window.toast('Clipboard blocked by the browser.'); });
+  });
+  renderBasket();
+})();
+
+/* ---------- fee split bar ---------- */
+function splitBar(){
+  var r=ST.route, rest=100-r, parts=[
+    ['basket',r,'#1d3c6e'],['creator',rest*.5,'#b03621'],['$DSCL stakers',rest*.25,'#9a7218'],['reserve',rest*.25,'#5a5d64']
+  ];
+  $('splitBar').innerHTML=parts.map(function(p){
+    return '<div style="width:'+p[1]+'%;background:'+p[2]+'" title="'+p[0]+' '+p[1].toFixed(1)+'%">'+(p[1]>13?esc(p[0])+' '+Math.round(p[1])+'%':(p[1]>7?Math.round(p[1])+'%':''))+'</div>';
+  }).join('');
+}
+splitBar();
+
+/* ---------- live panel ---------- */
+var LIVE='kestrel';
+function setLive(id){
+  LIVE=id; var s=byId[id];
+  $('lpAv').textContent=s.ab; $('lpName').textContent=s.name;
+  $('lpMeta').textContent=s.doc+' · '+s.aum+' · '+s.pos.length+' positions';
+  $('lpFiled').textContent='filed '+s.lagDays+' day'+(s.lagDays===1?'':'s')+' ago';
+  $('lpNext').textContent='next filing in '+s.nextIn+' day'+(s.nextIn===1?'':'s');
+  var span=s.lagDays+s.nextIn;
+  $('lpBar').style.width=clamp(s.lagDays/span*100,3,100)+'%';
+  var top=s.pos.filter(function(p){ return p[2]; }).slice(0,6), mx=top[0]?top[0][1]:1;
+  $('lpRows').innerHTML=top.map(function(p,i){
+    var d=[1.4,-0.8,0.3,-1.2,0.6,0][i]||0;
+    return '<div class="row"><span class="tk">'+p[0]+'</span><span class="bar"><i style="width:'+(p[1]/mx*100)+'%"></i></span>'+
+      '<span class="w">'+pct(p[1],1)+'</span><span class="d '+(d>0?'up':d<0?'dn':'fl')+'">'+(d===0?'—':(d>0?'+':'−')+Math.abs(d).toFixed(1))+'</span></div>';
+  }).join('');
+}
+(function(){
+  setLive('kestrel');
+  var feed=$('lpFeed'), n=0;
+  var tk=['NVDA','MSFT','AAPL','PLTR','LMT','COIN','AVGO','JPM','TSLA','ETN','GEV','HOOD'];
+  function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+  function ts(){ var d=new Date(); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':'+('0'+d.getSeconds()).slice(-2); }
+  function add(k,cls,html,sfx){
+    var e=document.createElement('div'); e.className='ev';
+    e.innerHTML='<span class="k '+cls+'">'+k+'</span><span>'+html+'</span><span class="ts">'+ts()+'</span>';
+    feed.insertBefore(e,feed.firstChild);
+    while(feed.children.length>6) feed.removeChild(feed.lastChild);
+    if(sfx) sfx();
+  }
+  function beat(){
+    var r=Math.random(), s=byId[pick(SOURCES).id];
+    if(r<.16) add('FILED','f','<b>'+esc(s.name)+'</b> filed a new '+s.doc+' · rebalance queued',SFX.paper);
+    else if(r<.46) add('BUY','b','vault bought <b>'+pick(tk)+'</b> · '+usd(120+Math.random()*2600),SFX.buy);
+    else if(r<.62) add('SELL','s','weights cut <b>'+pick(tk)+'</b> · '+usd(80+Math.random()*900),SFX.sell);
+    else if(r<.78) add('CLAIM','c','a holder claimed <b>'+usd(20+Math.random()*640)+'</b> of stock tokens',SFX.coin);
+    else if(r<.9) add('DRIFT','','<b>'+esc(s.name)+'</b> mirror drifted '+(2+Math.random()*4).toFixed(1)+'% · under trigger');
+    else add('SLEEVE','','untokenized position parked · <b>'+usd(200+Math.random()*1800)+'</b> to T-bills');
+    n++;
+  }
+  for(var i=0;i<5;i++) beat();
+  var running=true;
+  document.addEventListener('visibilitychange',function(){ running=!document.hidden; });
+  setInterval(function(){ if(running&&!document.hidden) beat(); },2600);
+})();
+
+/* ---------- sources table ---------- */
+(function(){
+  var rows=[
+    ['13F','Quarterly institutional holdings','quarterly','up to 45 days','funds over $100M','live at launch'],
+    ['Form 4','Insider transactions','per trade','2 business days','officers, directors, 10% owners','live at launch'],
+    ['PTR','Lawmaker transaction reports','per trade','30–45 days','members and spouses','live at launch'],
+    ['13D / 13G','Large stake disclosures','on crossing 5%','10 days','activists and big holders','vote pending'],
+    ['N-PORT','Fund portfolio reports','monthly, published quarterly','up to 60 days','registered funds','vote pending'],
+    ['ETF holdings','Published fund holdings','daily','T+1','transparent ETFs','after launch'],
+    ['Index files','Index constituents','on reconstitution','same day','public index providers','after launch']
+  ];
+  var h='<tr><th>Document</th><th>What it is</th><th>Cadence</th><th>Lag</th><th>Who files it</th><th>Status</th></tr>';
+  rows.forEach(function(r){
+    var st=r[5]==='live at launch'?'ok':r[5]==='vote pending'?'':'no';
+    h+='<tr><td class="n"><b>'+r[0]+'</b><small>'+r[1]+'</small></td><td class="n" style="color:var(--mute);font-size:13px">'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td class="n" style="font-size:13px;color:var(--mute)">'+r[4]+'</td><td><span class="tag '+st+'">'+r[5]+'</span></td></tr>';
+  });
+  $('srcTbl').innerHTML=h;
+})();
+
+/* ---------- lag simulator ---------- */
+(function(){
+  var lag=45, turn=.3;
+  function seeded(i){ var x=Math.sin(i*12.9898)*43758.5453; return x-Math.floor(x); }
+  function run(){
+    var s=byId[ST.src]||SOURCES[0], q=s.q.slice();
+    var erosion=clamp(turn*(lag/90)*1.15,0,.95);
+    var src=1, mir=1, out=[];
+    q.forEach(function(r,i){
+      var noise=(seeded(i+lag)*2-1)*Math.abs(r)*.35;
+      var m=r*(1-erosion)+noise*erosion;
+      src*=(1+r/100); mir*=(1+m/100);
+      out.push([r,m]);
+    });
+    return {out:out,src:(src-1)*100,mir:(mir-1)*100,erosion:erosion};
+  }
+  function paint(){
+    var r=run(), mx=1;
+    r.out.forEach(function(p){ mx=Math.max(mx,Math.abs(p[0]),Math.abs(p[1])); });
+    function bar(v,cls){
+      var h=Math.abs(v)/mx*46;
+      return '<span class="b '+cls+'" style="'+(v>=0?'bottom:50%':'top:50%')+';height:'+h+'%" title="'+(v>0?'+':'')+v.toFixed(1)+'%"></span>';
+    }
+    $('lagBars').innerHTML=r.out.map(function(p,i){
+      return '<div>'+bar(p[0],'src')+bar(p[1],'mir')+'<span class="lb">Q'+(i+1)+'</span></div>';
+    }).join('');
+    $('lagSrc').textContent=(r.src>0?'+':'')+f(r.src,1)+'%';
+    $('lagMir').textContent=(r.mir>0?'+':'')+f(r.mir,1)+'%';
+    var cap=r.src!==0?(r.mir/r.src*100):100;
+    $('lagPlain').innerHTML='At <b>'+lag+' days</b> of delay and this turnover, the mirror captured about <b>'+f(clamp(cap,-200,200),0)+'%</b> of what the filer’s own book did over eight quarters. '+
+      (lag<=3?'Near-live documents barely lose anything — that is why insider and ETF sources are worth more than they look.':
+       lag<=20?'Still close. Most of the gap comes from names the filer rotated out of before the document was public.':
+       'That gap is the honest price of a public document. <b>A slow, boring filer loses almost nothing to lag; a fast trader loses most of the point.</b>');
+  }
+  $('lag').addEventListener('input',function(){ lag=+this.value; $('lagV').textContent=lag+' day'+(lag===1?'':'s'); paint(); });
+  $('lag').addEventListener('change',function(){ SFX.tick(); });
+  $('toSegs').addEventListener('click',function(e){
+    var b=e.target.closest('.seg'); if(!b) return;
+    turn=+b.dataset.t; $('toV').textContent=b.textContent.toLowerCase();
+    this.querySelectorAll('.seg').forEach(function(x){ x.classList.toggle('on',x===b); });
+    SFX.tick(); paint();
+  });
+  window.__lagPaint=paint;
+  paint();
+})();
+
+/* ---------- mirrors table ---------- */
+(function(){
+  var M=[
+    ['$KSTRL','kestrel','$412k','1.9%','31d','59d','Mon 12:00 UTC'],
+    ['$BELT','beltway','$286k','3.4%','36d','12d','Mon 12:00 UTC'],
+    ['$ARCX','brightarc','$531k','2.2%','1d','1d','Mon 12:00 UTC'],
+    ['$HALL','hallam','$174k','4.6%','38d','21d','Mon 12:00 UTC'],
+    ['$NVPT','novapoint','$98k','5.1%','2d','9d','Mon 12:00 UTC'],
+    ['$MRNC','marin','$121k','1.2%','44d','47d','Mon 12:00 UTC'],
+    ['$OLYM','olympia','$367k','0.8%','41d','50d','Mon 12:00 UTC'],
+    ['$ORCH','orchard','$64k','6.2%','3d','14d','Mon 12:00 UTC']
+  ];
+  var h='<tr><th>Coin</th><th>Source</th><th>Vault</th><th>Tracking error</th><th>Filed</th><th>Next doc</th><th>Claim window</th></tr>';
+  M.forEach(function(m){
+    var s=byId[m[1]];
+    h+='<tr class="cl" data-s="'+m[1]+'"><td class="n"><b>'+m[0]+'</b><small>'+s.doc+'</small></td>'+
+      '<td class="n" style="font-size:13.5px">'+esc(s.name)+'</td><td>'+m[2]+'</td><td>'+m[3]+'</td><td>'+m[4]+' ago</td><td>in '+m[5]+'</td><td>'+m[6]+'</td></tr>';
+  });
+  $('mirTbl').innerHTML=h;
+  $('mirTbl').addEventListener('click',function(e){
+    var tr=e.target.closest('tr.cl'); if(!tr) return;
+    var id=tr.dataset.s; ST.src=id;
+    document.querySelectorAll('.srcopt').forEach(function(x){ x.classList.toggle('on',x.dataset.s===id); });
+    renderBasket(); setLive(id); window.__lagPaint(); SFX.paper();
+    document.getElementById('desk').scrollIntoView({behavior:'smooth'});
+    window.toast('Loaded '+byId[id].name+' into the copy desk.');
+  });
+})();
+
+/* ---------- token params ---------- */
+(function(){
+  var rows=[
+    ['Ticker','$DSCL'],['Chain','Robinhood Chain · 4663'],['Supply','1,000,000,000'],
+    ['Staker share','25% of every mirror’s non-basket fee'],['Paid in','the stock tokens mirrors hold'],
+    ['Payout','weekly, same window as mirrors'],['Vote weight','1 staked token, epoch snapshot'],
+    ['Unstake','end of the 7-day epoch'],['Launch fee','flat ETH, discounted for stakers']
+  ];
+  $('tokTbl').innerHTML=rows.map(function(r){ return '<tr><td class="n">'+r[0]+'</td><td><b>'+esc(r[1])+'</b></td></tr>'; }).join('');
+})();
+})();
+</script>
+
+<script>
+/* =================================================================
+   WALLET — EIP-6963 discovery + EIP-1193, Robinhood Chain (4663)
+   ================================================================= */
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id);};
+var CHAIN={
+  chainId:'0x133f',
+  chainName:'Robinhood Chain',
+  nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},
+  rpcUrls:['https://rpc.mainnet.chain.robinhood.com'],
+  blockExplorerUrls:['https://robinhoodchain.blockscout.com']
+};
+var TOKCA=(window.CONTRACT||'').trim();
+var WC_ID=(window.WC_PROJECT_ID||'').trim();
+var MOBILE=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+var W={providers:{},prov:null,info:null,addr:null,chain:null,eth:null,bal:null,dec:18};
+function store(k,v){
+  try{
+    if(v===undefined) return localStorage.getItem(k);
+    if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v);
+  }catch(e){ return null; }
+}
+function beep(a,b,d,t,g){ if(window.tone) window.tone(a,b,d,t,g); }
+function say(m){ if(window.toast) window.toast(m); }
+
+window.addEventListener('eip6963:announceProvider',function(e){
+  var d=e.detail; if(!d||!d.info||!d.provider) return;
+  W.providers[d.info.uuid]=d;
+  if($('ov').classList.contains('show') && !W.addr) renderPicker();
+});
+window.dispatchEvent(new Event('eip6963:requestProvider'));
+
+function short(a){ return a?a.slice(0,6)+'…'+a.slice(-4):''; }
+function isOk(){ return !!W.chain && W.chain.toLowerCase()===CHAIN.chainId; }
+function fmtUnits(hex,dec,dp){
+  try{
+    var v=BigInt(hex||'0x0'), base=BigInt(10)**BigInt(dec);
+    var whole=v/base, frac=v%base;
+    var f=frac.toString().padStart(dec,'0').slice(0,dp).replace(/0+$/,'');
+    return whole.toLocaleString('en-US')+(f?'.'+f:'');
+  }catch(e){ return '—'; }
+}
+function esc(s){ return String(s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function pageUrl(){ return location.origin+location.pathname; }
+function listOptions(){
+  var list=Object.keys(W.providers).map(function(k){ return W.providers[k]; });
+  if(!list.length && window.ethereum){
+    var e=window.ethereum;
+    var nm=e.isRabby?'Rabby':e.isTrust||e.isTrustWallet?'Trust Wallet':e.isOkxWallet||e.isOKExWallet?'OKX Wallet':e.isRobinhood||e.isRobinhoodWallet?'Robinhood Wallet':e.isMetaMask?'MetaMask':'Browser wallet';
+    list.push({info:{uuid:'legacy',name:nm,icon:'',rdns:'legacy'},provider:e});
+  }
+  return list;
+}
+
+/* wallets that work on Robinhood Chain */
+var KNOWN=[
+  {k:'robinhood',n:'Robinhood Wallet',c:'#1c1d22',t:'R',m:/robinhood/i,
+   help:function(){ return '<p>Robinhood Wallet supports Robinhood Chain out of the box.</p><ol><li>Open Robinhood Wallet on your phone</li><li>Tap <b>Web3</b> (the globe icon)</li><li>Paste <code>'+esc(pageUrl())+'</code> and tap Connect wallet there</li></ol>'; },
+   acts:function(){ return (WC_ID?'<button class="btn sm acc" data-act="wc">Scan QR with WalletConnect</button>':'')+'<button class="btn sm ghost" data-act="copy">Copy site link</button><a class="btn sm ghost" target="_blank" rel="noopener" href="https://robinhood.com/us/en/download/wallet/">Get the app ↗</a>'; }},
+  {k:'metamask',n:'MetaMask',c:'#F6851B',t:'M',m:/metamask/i,
+   help:function(){ return MOBILE?'<p>Opens this page inside the MetaMask app. DISCLOSED then adds Robinhood Chain for you.</p>':'<p>Install the MetaMask extension and reload this page. DISCLOSED adds Robinhood Chain (4663) to it when you connect.</p>'; },
+   acts:function(){ return MOBILE?'<a class="btn sm acc" href="https://metamask.app.link/dapp/'+esc(location.host+location.pathname)+'">Open in MetaMask</a>':'<a class="btn sm acc" target="_blank" rel="noopener" href="https://metamask.io/download/">Install MetaMask ↗</a>'+(WC_ID?'<button class="btn sm ghost" data-act="wc">Use the phone app (QR)</button>':''); }},
+  {k:'rabby',n:'Rabby',c:'#7084FF',t:'R',m:/rabby/i,
+   help:function(){ return '<p>Install the Rabby extension and reload this page. Robinhood Chain is added as a custom network when you connect.</p>'; },
+   acts:function(){ return '<a class="btn sm acc" target="_blank" rel="noopener" href="https://rabby.io/">Get Rabby ↗</a>'+(WC_ID?'<button class="btn sm ghost" data-act="wc">Rabby mobile (QR)</button>':''); }},
+  {k:'trust',n:'Trust Wallet',c:'#0500FF',t:'T',m:/trust/i,
+   help:function(){ return MOBILE?'<p>Opens this page in the Trust Wallet browser. Approve adding Robinhood Chain when asked.</p>':'<p>Install the Trust Wallet extension and reload, or connect the mobile app by QR.</p>'; },
+   acts:function(){ return MOBILE?'<a class="btn sm acc" href="https://link.trustwallet.com/open_url?coin_id=60&url='+encodeURIComponent(pageUrl())+'">Open in Trust Wallet</a>':'<a class="btn sm acc" target="_blank" rel="noopener" href="https://trustwallet.com/download">Get Trust Wallet ↗</a>'+(WC_ID?'<button class="btn sm ghost" data-act="wc">Mobile app (QR)</button>':''); }},
+  {k:'okx',n:'OKX Wallet',c:'#2a2b30',t:'O',m:/okx|okex/i,
+   help:function(){ return '<p>Install OKX Wallet and reload this page, or open it from the app\u2019s Discover browser.</p>'; },
+   acts:function(){ return '<a class="btn sm acc" target="_blank" rel="noopener" href="https://web3.okx.com/download">Get OKX Wallet ↗</a>'+(WC_ID?'<button class="btn sm ghost" data-act="wc">Mobile app (QR)</button>':'')+'<button class="btn sm ghost" data-act="copy">Copy site link</button>'; }}
+];
+
+var ov=$('ov'), mBody=$('mBody');
+function openModal(){ ov.classList.add('show'); if(W.addr) renderAccount(); else renderPicker(); window.dispatchEvent(new Event('eip6963:requestProvider')); beep(520,780,.08,'sine',.03); }
+function closeModal(){ ov.classList.remove('show'); }
+$('mClose').addEventListener('click',closeModal);
+ov.addEventListener('click',function(e){ if(e.target===ov) closeModal(); });
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeModal(); });
+['wBtn','wBtn2','wBtn3'].forEach(function(id){ $(id).addEventListener('click',function(){ openModal(); }); });
+
+var CHAIN_IC='<svg width="18" height="18" viewBox="0 0 30 30" fill="none"><path d="M8 8v7.5a7 7 0 0 0 14 0V8" stroke="#e9f0ea" stroke-width="2.4" stroke-linecap="round"/><path d="M6 19.5h9.5L24 11" stroke="#7cf5b8" stroke-width="2" stroke-linecap="round"/></svg>';
+function netCard(){ return '<div class="netcard"><span class="ic">'+CHAIN_IC+'</span><div><b>Robinhood Chain</b><span>chain ID 4663 · ETH for gas</span></div></div>'; }
+var WALLET_IC='<span class="gic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#8b8f98" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="2"/><path d="M10.5 8.5h1.5"/></svg></span>';
+var WC_IC='<span class="lg" style="background:#3B99FC"><svg width="18" height="12" viewBox="0 0 30 18" fill="#fff"><path d="M6.1 3.5c4.9-4.7 12.9-4.7 17.8 0l.6.6c.2.2.2.6 0 .9l-2 2c-.1.1-.3.1-.4 0l-.8-.8c-3.4-3.3-9-3.3-12.4 0l-.9.8c-.1.1-.3.1-.4 0l-2-2c-.2-.2-.2-.6 0-.9l.5-.6zm22 4.1 1.8 1.7c.2.2.2.6 0 .9l-8 7.8c-.2.2-.6.2-.9 0l-5.7-5.5c-.1-.1-.2-.1-.2 0l-5.7 5.5c-.2.2-.6.2-.9 0L.2 10.2c-.2-.2-.2-.6 0-.9L2 7.6c.2-.2.6-.2.9 0l5.7 5.5c.1.1.2.1.2 0l5.7-5.5c.2-.2.6-.2.9 0l5.7 5.5c.1.1.2.1.2 0l5.7-5.5c.3-.2.7-.2.9 0z"/></svg></span>';
+
+function renderPicker(err){
+  $('mTitle').textContent='Connect wallet';
+  var list=listOptions(), h=netCard(), taken={};
+  if(list.length){
+    h+='<div class="msec"><span>In this browser</span><span>'+list.length+' found</span></div><div class="wlist">'+list.map(function(p){
+      KNOWN.forEach(function(k){ if(k.m.test(p.info.name+' '+(p.info.rdns||''))) taken[k.k]=1; });
+      var ic=p.info.icon&&/^data:image\//.test(p.info.icon)?'<img alt="" src="'+esc(p.info.icon)+'">':WALLET_IC;
+      return '<button class="wopt" data-u="'+esc(p.info.uuid)+'">'+ic+'<b>'+esc(p.info.name)+'</b><span class="badge">DETECTED</span></button>';
+    }).join('')+'</div>';
+  }
+  if(WC_ID){
+    h+='<div class="msec"><span>Phone wallet</span></div><button class="wc" data-act="wc">'+WC_IC+'<b>WalletConnect</b><small>QR code</small></button>';
+  }
+  var rest=KNOWN.filter(function(k){ return !taken[k.k]; });
+  if(rest.length){
+    h+='<div class="msec"><span>'+(list.length?'Other wallets':'Wallets for Robinhood Chain')+'</span></div><div class="wlist">'+rest.map(function(k){
+      return '<button class="wopt" data-k="'+k.k+'"><span class="lg" style="background:'+k.c+'">'+k.t+'</span><b>'+k.n+'</b><svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4.5 2.5 8 6l-3.5 3.5"/></svg></button><div class="whelp" data-h="'+k.k+'">'+k.help()+'<div class="acts">'+k.acts()+'</div></div>';
+    }).join('')+'</div>';
+  }
+  h+='<div class="merr'+(err?' show':'')+'" id="mErr">'+(err?esc(err):'')+'</div>';
+  h+='<p class="mfoot">If Robinhood Chain is not in your wallet yet, DISCLOSED asks it to add the network with the official RPC and explorer. Connecting only shares your address, and signing a binding here costs no gas.</p>';
+  mBody.innerHTML=h;
+  mBody.querySelectorAll('.wopt[data-u]').forEach(function(b){
+    b.addEventListener('click',function(){
+      var u=b.getAttribute('data-u'), p=u==='legacy'?listOptions()[0]:W.providers[u];
+      b.classList.add('busy'); var bd=b.querySelector('.badge'); if(bd) bd.textContent='CHECK YOUR WALLET…';
+      connect(p).catch(function(e){ renderPicker(niceErr(e)); });
+    });
+  });
+  mBody.querySelectorAll('.wopt[data-k]').forEach(function(b){
+    b.addEventListener('click',function(){
+      var k=b.getAttribute('data-k'), hp=mBody.querySelector('.whelp[data-h="'+k+'"]'), open=!hp.classList.contains('show');
+      mBody.querySelectorAll('.whelp').forEach(function(x){ x.classList.remove('show'); });
+      mBody.querySelectorAll('.wopt[data-k]').forEach(function(x){ x.classList.remove('open'); });
+      if(open){ hp.classList.add('show'); b.classList.add('open'); }
+    });
+  });
+  mBody.querySelectorAll('[data-act="wc"]').forEach(function(b){ b.addEventListener('click',function(){ connectWC().catch(function(e){ renderPicker(niceErr(e)); }); }); });
+  mBody.querySelectorAll('[data-act="copy"]').forEach(function(b){ b.addEventListener('click',function(){ var t=b.textContent; navigator.clipboard.writeText(pageUrl()).then(function(){ b.textContent='Copied'; setTimeout(function(){ b.textContent=t; },1200); }); }); });
+}
+function niceErr(e){
+  var c=e&&(e.code||(e.data&&e.data.originalError&&e.data.originalError.code));
+  if(c===4001) return 'Request rejected in the wallet.';
+  if(c===-32002) return 'Your wallet already has a pending request. Open it and finish or cancel that first.';
+  if(e&&/Connection request reset|User closed modal|Modal closed/i.test(e.message||'')) return 'QR window closed before the wallet connected.';
+  return (e&&e.message)?e.message.slice(0,160):'Something went wrong while connecting.';
+}
+function req(method,params){ return W.prov.request({method:method,params:params||[]}); }
+
+function switchChain(){
+  return req('wallet_switchEthereumChain',[{chainId:CHAIN.chainId}]).catch(function(e){
+    var c=e&&(e.code||(e.data&&e.data.originalError&&e.data.originalError.code));
+    if(c===4902||c===-32603||/unrecognized|not added|unknown chain/i.test(e&&e.message||'')){
+      return req('wallet_addEthereumChain',[CHAIN]);
+    }
+    throw e;
+  }).then(function(){ return req('eth_chainId'); }).then(function(id){ W.chain=id; });
+}
+
+var bound=null;
+function bind(p){
+  if(bound===p||!p.on) return;
+  if(bound&&bound.removeListener){ try{ bound.removeListener('accountsChanged',onAcc); bound.removeListener('chainChanged',onChain); bound.removeListener('disconnect',onDisc); }catch(e){} }
+  p.on('accountsChanged',onAcc); p.on('chainChanged',onChain);
+  if(W.info&&W.info.rdns==='walletconnect') p.on('disconnect',onDisc);
+  bound=p;
+}
+function onAcc(a){ if(!a||!a.length){ disconnect(true); return; } W.addr=a[0]; W.eth=null; W.bal=null; refresh(); }
+function onChain(id){ W.chain=typeof id==='number'?'0x'+id.toString(16):id; refresh(); }
+function onDisc(){ disconnect(true); }
+
+function afterConnect(){
+  store('dsc_wallet',W.info.rdns||W.info.uuid);
+  refresh(); renderAccount();
+  say('Connected '+short(W.addr)+(isOk()?' on Robinhood Chain':''));
+  beep(660,990,.12,'triangle',.05);
+}
+function connect(p){
+  if(!p) return Promise.reject(new Error('No wallet selected.'));
+  W.prov=p.provider; W.info=p.info;
+  return req('eth_requestAccounts').then(function(a){
+    if(!a||!a.length) throw new Error('The wallet returned no accounts.');
+    W.addr=a[0]; bind(W.prov);
+    return req('eth_chainId');
+  }).then(function(id){
+    W.chain=id;
+    if(!isOk()) return switchChain().catch(function(e){ say('Connected, but still on another network. '+niceErr(e)); });
+  }).then(afterConnect);
+}
+
+/* WalletConnect — loaded only when used */
+var WCP=null;
+function loadWC(){
+  if(window.HP_WC) return Promise.resolve(window.HP_WC);
+  return new Promise(function(res,rej){
+    var s=document.createElement('script'); s.src='assets/wc.js'; s.async=true;
+    s.onload=function(){ window.HP_WC?res(window.HP_WC):rej(new Error('WalletConnect failed to load.')); };
+    s.onerror=function(){ rej(new Error('WalletConnect failed to load. Check your connection.')); };
+    document.head.appendChild(s);
+  });
+}
+function initWC(){
+  if(WCP) return Promise.resolve(WCP);
+  return loadWC().then(function(EP){
+    return EP.init({
+      projectId:WC_ID, optionalChains:[4663], showQrModal:true,
+      rpcMap:{4663:CHAIN.rpcUrls[0]},
+      metadata:{name:'DISCLOSED',description:'One pool writes the options for every new coin on Robinhood Chain',url:location.origin,icons:[location.origin+location.pathname.replace(/[^/]*$/,'')+'assets/favicon.png']},
+      qrModalOptions:{themeMode:'light'}
+    });
+  }).then(function(p){ WCP=p; return p; });
+}
+function connectWC(){
+  if(!WC_ID) return Promise.reject(new Error('WalletConnect is not configured yet.'));
+  closeModal();
+  return initWC().then(function(p){
+    W.prov=p; W.info={uuid:'walletconnect',name:'WalletConnect',rdns:'walletconnect'};
+    return (p.session?Promise.resolve():p.connect({optionalChains:[4663],rpcMap:{4663:CHAIN.rpcUrls[0]}})).then(function(){
+      var a=p.accounts||[]; if(!a.length) throw new Error('The wallet returned no accounts.');
+      W.addr=a[0]; W.chain='0x'+Number(p.chainId||4663).toString(16); bind(p);
+      if(!isOk()) return switchChain().catch(function(e){ say('Connected, but the wallet did not switch to Robinhood Chain. '+niceErr(e)); });
+    });
+  }).then(function(){ openModal(); afterConnect(); }).catch(function(e){ openModal(); throw e; });
+}
+
+function disconnect(silent){
+  if(W.prov&&!silent){
+    if(W.info&&W.info.rdns==='walletconnect'){ try{ W.prov.disconnect().catch(function(){}); }catch(e){} }
+    else { try{ req('wallet_revokePermissions',[{eth_accounts:{}}]).catch(function(){}); }catch(e){} }
+  }
+  W.addr=null; W.chain=null; W.eth=null; W.bal=null;
+  store('dsc_wallet',null);
+  paint();
+  if(ov.classList.contains('show')) renderPicker();
+  if(!silent) say('Disconnected');
+}
+
+function refresh(){
+  paint();
+  if(!W.addr||!isOk()){ if(ov.classList.contains('show')&&W.addr) renderAccount(); return; }
+  var addr=W.addr;
+  req('eth_getBalance',[addr,'latest']).then(function(b){ if(addr!==W.addr) return; W.eth=b; if(ov.classList.contains('show')) renderAccount(); }).catch(function(){});
+  if(TOKCA){
+    var data='0x70a08231'+addr.toLowerCase().replace(/^0x/,'').padStart(64,'0');
+    req('eth_call',[{to:TOKCA,data:'0x313ce567'},'latest']).then(function(d){ var n=parseInt(d,16); if(n>=0&&n<=36) W.dec=n; }).catch(function(){})
+    .then(function(){ return req('eth_call',[{to:TOKCA,data:data},'latest']); })
+    .then(function(b){ if(addr!==W.addr) return; W.bal=b; paint(); if(ov.classList.contains('show')) renderAccount(); }).catch(function(){});
+  }
+}
+
+function sigList(){ try{ return JSON.parse(store('dsc_sigs')||'[]')||[]; }catch(e){ return []; } }
+function mySigs(kind){ if(!W.addr) return []; var a=W.addr.toLowerCase(); return sigList().filter(function(s){ return s.a===a&&(!kind||s.k===kind); }); }
+
+function paint(){
+  var b=$('wBtn'), b2=$('wBtn2'), w3=document.querySelector('.wl3'), tb=$('tokBal'), qs=$('qSign'), ds=$('dSign');
+  b.classList.remove('bad');
+  if(!W.addr){
+    b.innerHTML='<span class="wl">Connect wallet</span>'; b2.textContent='Connect wallet';
+    w3.textContent='Connect wallet';
+    qs.textContent='Connect wallet to bind this basket'; ds.textContent='Connect wallet to register for the first claim window';
+    tb.textContent='Connect a wallet on Robinhood Chain to see your $DSCL.';
+  } else if(!isOk()){
+    b.classList.add('bad'); b.innerHTML='<span class="net"><i class="wdot bad"></i>Wrong network</span>';
+    b2.textContent='Switch to Robinhood Chain'; w3.textContent='Switch to Robinhood Chain';
+    qs.textContent='Switch to Robinhood Chain'; ds.textContent='Switch to Robinhood Chain';
+    tb.textContent='Your wallet is on another network. $DSCL lives on Robinhood Chain.';
+  } else {
+    b.innerHTML='<span class="net"><i class="wdot"></i><span class="addr">'+short(W.addr)+'</span></span>';
+    b2.textContent='Wallet connected · '+short(W.addr); w3.textContent=short(W.addr);
+    qs.textContent='Bind this basket · no gas';
+    ds.textContent=mySigs('claim').length?'Update my registration · no gas':'Register for the first claim window · no gas';
+    tb.innerHTML=!TOKCA?'Balance shows once $DSCL is live · <b>'+short(W.addr)+'</b>':'Your balance · <b>'+(W.bal?fmtUnits(W.bal,W.dec,2):'…')+' $DSCL</b>';
+  }
+}
+
+/* identicon */
+function hsh(s){ var h=2166136261; for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+function drawAv(cv,seed){
+  var c=cv.getContext('2d'), r=seed, n=5, u=cv.width/n;
+  function nx(){ r=(Math.imul(r,1664525)+1013904223)>>>0; return r/4294967296; }
+  var cols=['#b03621','#1d3c6e','#1d7146','#9a7218'], col=cols[Math.floor(nx()*4)];
+  c.fillStyle='#e9e4d6'; c.fillRect(0,0,cv.width,cv.height);
+  c.fillStyle=col;
+  for(var y=0;y<n;y++) for(var x=0;x<3;x++) if(nx()<.5){ c.fillRect(x*u,y*u,u,u); c.fillRect((n-1-x)*u,y*u,u,u); }
+}
+
+function renderAccount(){
+  if(!W.addr){ renderPicker(); return; }
+  $('mTitle').textContent='Your wallet';
+  var ok=isOk(), qs=mySigs('bind'), ds=mySigs('claim');
+  var balTxt=!TOKCA?'once live':(W.bal==null?'…':fmtUnits(W.bal,W.dec,2));
+  var lq=qs.length?qs[qs.length-1]:null, ld=ds.length?ds[ds.length-1]:null;
+  var h='<div class="acct">'+
+    '<div class="who"><canvas width="80" height="80" id="accAv"></canvas><div><b>'+short(W.addr)+'</b><span>'+esc(W.info?W.info.name:'Wallet')+'</span></div><button class="btn sm ghost cp" id="cpA">Copy</button></div>'+
+    '<div class="kv">'+
+      '<div><span>Network</span>'+(ok?'<b class="ok">Robinhood Chain</b>':'<b class="bad">chain '+parseInt(W.chain,16)+'</b>')+'</div>'+
+      '<div><span>ETH</span><b>'+(ok?(W.eth?fmtUnits(W.eth,18,5):'…'):'—')+'</b></div>'+
+      '<div><span>$DSCL</span><b>'+(ok?balTxt:'—')+'</b></div>'+
+      '<div><span>Bound baskets</span><b>'+qs.length+'</b></div>'+
+      '<div><span>Claim window 01</span><b>'+(ld?esc(ld.d):'none')+'</b></div>'+
+    '</div>';
+  if(ok){
+    h+='<div class="lastq"><h4>LAST BOUND BASKET</h4>'+(lq?'<b>'+esc(lq.d)+'</b><br>id '+esc(lq.c.slice(0,22))+'…':'Nothing bound yet. Build a basket in the copy desk and sign it from there.')+'</div>';
+    h+='<a class="btn sm ghost" href="#desk" id="goQ">Open the copy desk</a>';
+  }
+  h+='<div class="btns">'+(ok?'<a class="btn sm ghost" target="_blank" rel="noopener" href="'+CHAIN.blockExplorerUrls[0]+'/address/'+W.addr+'">Explorer ↗</a>':'<button class="btn sm acc" id="swN">Switch network</button>')+
+    '<button class="btn sm ghost" id="dcB">Disconnect</button></div>'+
+  '</div>';
+  mBody.innerHTML=h;
+  drawAv($('accAv'),hsh(W.addr.toLowerCase()));
+  $('cpA').addEventListener('click',function(){ var b=this; navigator.clipboard.writeText(W.addr).then(function(){ b.textContent='Copied'; setTimeout(function(){ b.textContent='Copy'; },1200); }); });
+  $('dcB').addEventListener('click',function(){ disconnect(false); });
+  if($('goQ')) $('goQ').addEventListener('click',function(){ closeModal(); });
+  if($('swN')) $('swN').addEventListener('click',function(){ switchChain().then(refresh).catch(function(e){ say(niceErr(e)); }); });
+}
+
+function hexUtf8(s){ var b=new TextEncoder().encode(s), h='0x'; for(var i=0;i<b.length;i++) h+=b[i].toString(16).padStart(2,'0'); return h; }
+function sha(hex){
+  try{
+    var clean=hex.replace(/^0x/,''), u=new Uint8Array(clean.length/2);
+    for(var i=0;i<u.length;i++) u[i]=parseInt(clean.substr(i*2,2),16);
+    return crypto.subtle.digest('SHA-256',u).then(function(d){ return '0x'+Array.from(new Uint8Array(d)).map(function(x){ return x.toString(16).padStart(2,'0'); }).join(''); });
+  }catch(e){ return Promise.resolve(hex.slice(0,66)); }
+}
+/* gate: returns true when ready to sign, otherwise opens the right step */
+function ready(){
+  if(!W.addr){ openModal(); return false; }
+  if(!isOk()){ switchChain().then(refresh).catch(function(e){ say(niceErr(e)); }); return false; }
+  return true;
+}
+function signAndStore(kind,body,label,btn,note,idle){
+  var msg=body+'\n\nwallet: '+W.addr+'\nchain: 4663\nissued: '+new Date().toISOString();
+  btn.textContent='Check your wallet…'; btn.disabled=true;
+  return req('personal_sign',[hexUtf8(msg),W.addr]).then(function(sig){
+    return sha(sig).then(function(c){
+      var list=sigList(); list.push({a:W.addr.toLowerCase(),k:kind,d:label,c:c,t:Date.now()}); store('dsc_sigs',JSON.stringify(list.slice(-80)));
+      btn.disabled=false; paint();
+      note.innerHTML='Signed · <b>'+esc(label)+'</b> · id '+esc(c.slice(0,18))+'…';
+      say(kind==='claim'?'Registered for claim window 01':'Basket bound · '+label);
+    });
+  }).catch(function(e){ btn.disabled=false; paint(); note.textContent=niceErr(e); });
+}
+
+
+$('qSign').addEventListener('click',function(){
+  if(!ready()) return;
+  var body=window.__basket&&window.__basket();
+  if(!body){ $('qNote').textContent='Pick a source in the desk first.'; return; }
+  signAndStore('bind',body,window.__basketShort(),this,$('qNote'));
+});
+$('dSign').addEventListener('click',function(){
+  if(!ready()) return;
+  signAndStore('claim','DISCLOSED claim window 01 registration\n\nnote: a registration, not a deposit. No funds move.','claim window 01',this,$('dNote'));
+});
+
+/* silent reconnect */
+(function(){
+  var last=store('dsc_wallet'); if(!last) return;
+  if(last==='walletconnect'){
+    if(!WC_ID) return;
+    initWC().then(function(p){
+      if(!p.session||!(p.accounts||[]).length) return;
+      W.prov=p; W.info={uuid:'walletconnect',name:'WalletConnect',rdns:'walletconnect'};
+      W.addr=p.accounts[0]; W.chain='0x'+Number(p.chainId||4663).toString(16); bind(p); refresh();
+    }).catch(function(){});
+    return;
+  }
+  setTimeout(function(){
+    var list=listOptions(), p=null;
+    list.forEach(function(x){ if(x.info.rdns===last||x.info.uuid===last) p=x; });
+    if(!p&&last==='legacy') p=list[0];
+    if(!p) return;
+    p.provider.request({method:'eth_accounts'}).then(function(a){
+      if(!a||!a.length) return;
+      W.prov=p.provider; W.info=p.info; W.addr=a[0]; bind(W.prov);
+      return W.prov.request({method:'eth_chainId'}).then(function(id){ W.chain=id; refresh(); });
+    }).catch(function(){});
+  },350);
+})();
+
+paint();
+window.__uww=W;
+})();
+
+</script>
+</body>
+</html>
